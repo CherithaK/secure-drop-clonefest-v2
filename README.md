@@ -2,7 +2,7 @@
 
 > **Share the note. Keep the boundary.**
 
-SecureDrop is a modern, privacy-first platform for sharing sensitive text without turning it into a permanent chat message, inbox artifact, or document. It preserves the essential purpose of PrivateBin—controlled, temporary information sharing—while rethinking the experience around explicit boundaries, clear lifecycle states, and a calm editorial interface.
+SecureDrop is a modern, privacy-first platform for sharing sensitive text without turning it into a permanent chat message, inbox artifact, or document. It preserves the essential purpose of PrivateBin, controlled, temporary information sharing, while rethinking the experience around explicit boundaries, clear lifecycle states, and a calm editorial interface.
 
 This repository is the CloneFest 2.0 submission for the **Legacy Modernisation: PrivateBin** challenge. The implementation is intentionally independent rather than a visual clone: it combines a tactile “Paper Trail” product language with real server-side persistence, authenticated decryption, revocation, destruction, session history, and scheduled cleanup.
 
