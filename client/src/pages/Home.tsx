@@ -69,6 +69,8 @@ export default function Home() {
   const [published, setPublished] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
+  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [focusedSetting, setFocusedSetting] = useState<"protection" | "expiry" | null>(null);
   const protectionControlRef = useRef<HTMLDivElement>(null);
   const expiryControlRef = useRef<HTMLDivElement>(null);
@@ -127,7 +129,7 @@ export default function Home() {
         <button className={`rail-item rail-subtle ${focusedSetting === "expiry" ? "settings-active" : ""}`} onClick={() => focusDefault("expiry")}><Clock3 size={17} /><span>Expiry rules</span></button>
         <div className="rail-footer">
           <div className="privacy-stamp"><ShieldCheck size={16} /><div><strong>Private by design</strong><span>Zero knowledge storage</span></div></div>
-          <button className="account-row"><div className="avatar">U</div><div><strong>User</strong><span>Personal workspace</span></div><ChevronDown size={15} /></button>
+          <button className="account-row" onClick={() => setProfileMenuOpen(true)} aria-expanded={profileMenuOpen}><div className="avatar">U</div><div><strong>User</strong><span>Personal workspace</span></div><ChevronDown size={15} /></button>
         </div>
       </aside>
 
@@ -136,12 +138,12 @@ export default function Home() {
           <button className="mobile-menu icon-button" aria-label="Open navigation" onClick={() => setMobileNav(true)}><Menu size={20} /></button>
           <div className="breadcrumbs"><span>Workspace</span><span className="slash">/</span><strong>New drop</strong></div>
           <div className="top-actions">
-            <button className="help-button"><HelpCircle size={16} /> <span>How it works</span></button><button className="theme-toggle icon-button" onClick={() => toggleTheme?.()} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
+            <button className="help-button" onClick={() => setHowItWorksOpen(true)}><HelpCircle size={16} /> <span>How it works</span></button><button className="theme-toggle icon-button" onClick={() => toggleTheme?.()} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
             <div className="more-wrap">
               <button className="icon-button" aria-label="More options" onClick={() => setMenuOpen(!menuOpen)}><MoreHorizontal size={19} /></button>
               {menuOpen && <div className="popover-menu"><button>Keyboard shortcuts</button><button>Export preferences</button><button>Privacy policy</button></div>}
             </div>
-            <button className="avatar top-avatar">U</button>
+            <div className="profile-wrap"><button className="avatar top-avatar" onClick={() => setProfileMenuOpen((open) => !open)} aria-label="Open User profile menu" aria-expanded={profileMenuOpen}>U</button>{profileMenuOpen && <div className="profile-menu" role="menu"><div className="profile-menu-head"><div className="avatar">U</div><div><strong>User</strong><span>Browser session</span></div></div><button role="menuitem" onClick={() => { setProfileMenuOpen(false); setLocation("/dashboard"); }}>My drops <ArrowUpRight size={14} /></button><button role="menuitem" onClick={() => { setProfileMenuOpen(false); setLocation("/collections"); }}>Collections <ArrowUpRight size={14} /></button><button role="menuitem" className="profile-menu-muted" onClick={() => { setProfileMenuOpen(false); void logout(); toast.success("Signed out"); }}>Sign out <ArrowUpRight size={14} /></button></div>}</div>
           </div>
         </header>
 
@@ -181,6 +183,8 @@ export default function Home() {
           <footer className="page-footer"><span>SECUREDROP / A SMALLER SURFACE FOR SENSITIVE THINGS</span><span><Hash size={13} /> v0.8.4 · End-to-end encrypted</span></footer>
         </div>
       </main>
+
+      {howItWorksOpen && <div className="modal-backdrop" onClick={() => setHowItWorksOpen(false)}><section className="how-modal" role="dialog" aria-modal="true" aria-labelledby="how-title" onClick={(e) => e.stopPropagation()}><button className="modal-close icon-button" aria-label="Close how it works" onClick={() => setHowItWorksOpen(false)}><X size={18} /></button><div className="modal-mark"><ShieldCheck size={22} /></div><div className="object-label">SECUREDROP / THE SHORT VERSION</div><h2 id="how-title">A note with an edge.</h2><p>SecureDrop turns sensitive text into a temporary, controlled handoff. The boundary is decided before the link leaves your hands.</p><div className="how-steps"><div className="how-step"><span>01</span><div><strong>Write</strong><p>Paste the note. It can be up to 100,000 characters.</p></div><FileText size={18} /></div><div className="how-step"><span>02</span><div><strong>Set the boundary</strong><p>Choose expiry, view limits, a passphrase, or burn-after-reading.</p></div><KeyRound size={18} /></div><div className="how-step"><span>03</span><div><strong>Share, then let go</strong><p>Once opened or revoked, the ciphertext is destroyed and the link closes.</p></div><Trash2 size={18} /></div></div><button className="done-button" onClick={() => setHowItWorksOpen(false)}>Back to the workspace</button></section></div>}
 
       {published && <div className="modal-backdrop" onClick={() => setPublished(false)}><div className="share-modal" onClick={(e) => e.stopPropagation()}><button className="modal-close icon-button" onClick={() => setPublished(false)}><X size={18} /></button><div className="modal-mark"><Check size={22} /></div><div className="object-label">DROP CREATED / READY TO SHARE</div><h2>Your boundary is set.</h2><p>This link can be opened once, then it disappears. Anyone with the link can access this drop.</p><div className="share-link"><span>{createdUrl || "securedrop.local/d/7K4-M9Q"}</span><button onClick={copyLink}><Copy size={16} /> Copy</button></div><div className="modal-details"><span><Clock3 size={14} /> {expiry}</span><span><KeyRound size={14} /> {password ? "Passphrase protected" : "Link only"}</span></div><button className="done-button" onClick={() => setPublished(false)}>Done</button></div></div>}
     </div>

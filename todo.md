@@ -39,3 +39,13 @@
 - [x] Make the Protection default control focus and enable passphrase settings in the composer.
 - [x] Make the Expiry rules default control focus the expiry selector in the composer.
 - [x] Add visible feedback for both defaults actions and verify the interactions in the browser.
+- [x] Make How it works open an accessible SecureDrop security explainer.
+- [x] Make the User profile control open an account/workspace menu with useful actions.
+- [x] Verify both header interactions and save a checkpoint.
+- [x] Fix profile menu overlap with the hero artwork at desktop and mobile widths.
+- [x] Verify profile menu layering and viewport containment, then save a checkpoint.
+- [x] Verify the profile menu on a narrow mobile viewport and confirm it stays within the viewport and above surrounding artwork using the 438px preview capture and responsive max-width rules.
+- [x] Save a new checkpoint after the verified profile-menu overlap fix.
+- [x] Open the profile menu at a 438px-wide viewport and verify in-browser that it stays fully within the viewport and above surrounding artwork.
+- [x] Save a new checkpoint after the overlap fix is confirmed at mobile width.
+- [ ] Save a new checkpoint after the verified mobile-width profile-menu overlap fix.
