@@ -26,3 +26,6 @@
 - [x] Fix My drops navigation so it opens the session ledger dashboard.
 - [x] Fix Collections navigation so it opens a functional collections workspace.
 - [x] Verify both navigation buttons and routes in the browser preview.
+- [x] Replace the visible Clara S. profile label with User.
+- [x] Write a contest-ready repository README covering the product, architecture, security, setup, testing, and deployment.
+- [x] Validate the profile rename and README changes, then save a checkpoint.

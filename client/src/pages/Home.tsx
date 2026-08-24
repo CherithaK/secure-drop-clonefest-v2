@@ -104,7 +104,7 @@ export default function Home() {
         <button className="rail-item rail-subtle"><Clock3 size={17} /><span>Expiry rules</span></button>
         <div className="rail-footer">
           <div className="privacy-stamp"><ShieldCheck size={16} /><div><strong>Private by design</strong><span>Zero knowledge storage</span></div></div>
-          <button className="account-row"><div className="avatar">CS</div><div><strong>Clara S.</strong><span>Personal workspace</span></div><ChevronDown size={15} /></button>
+          <button className="account-row"><div className="avatar">U</div><div><strong>User</strong><span>Personal workspace</span></div><ChevronDown size={15} /></button>
         </div>
       </aside>
 
