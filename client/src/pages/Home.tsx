@@ -1,6 +1,7 @@
 /* Paper Trail direction: broad note canvas, editorial labels, coral decisions, and plain-language privacy cues. */
 import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -28,6 +29,8 @@ import {
   Trash2,
   Undo2,
   X,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 const heroImage = "/manus-storage/securedrop-hero_7ac0ced3.png";
@@ -49,6 +52,7 @@ export default function Home() {
   let { user, loading, error, isAuthenticated, logout } = useAuth();
 
   const [, setLocation] = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const [content, setContent] = useState("Paste a note, secret, or handoff here…");
   const [title, setTitle] = useState("");
   const [expiry, setExpiry] = useState("Burn after reading");
@@ -113,12 +117,12 @@ export default function Home() {
           <button className="mobile-menu icon-button" aria-label="Open navigation" onClick={() => setMobileNav(true)}><Menu size={20} /></button>
           <div className="breadcrumbs"><span>Workspace</span><span className="slash">/</span><strong>New drop</strong></div>
           <div className="top-actions">
-            <button className="help-button"><HelpCircle size={16} /> <span>How it works</span></button>
+            <button className="help-button"><HelpCircle size={16} /> <span>How it works</span></button><button className="theme-toggle icon-button" onClick={() => toggleTheme?.()} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
             <div className="more-wrap">
               <button className="icon-button" aria-label="More options" onClick={() => setMenuOpen(!menuOpen)}><MoreHorizontal size={19} /></button>
               {menuOpen && <div className="popover-menu"><button>Keyboard shortcuts</button><button>Export preferences</button><button>Privacy policy</button></div>}
             </div>
-            <button className="avatar top-avatar">CS</button>
+            <button className="avatar top-avatar">U</button>
           </div>
         </header>
 

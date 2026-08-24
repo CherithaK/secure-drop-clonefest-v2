@@ -217,3 +217,25 @@ SecureDrop is an independent modernization project for the CloneFest 2.0 challen
 [4]: https://nodejs.org/api/crypto.html "Node.js Crypto documentation"
 [5]: https://vitest.dev/guide/ "Vitest documentation"
 [6]: https://github.com/PrivateBin/PrivateBin "PrivateBin reference repository"
+
+## Dark mode
+
+The application includes a persistent dark-mode toggle in the Home header. It uses the shared `ThemeProvider`, stores the preference in `localStorage`, applies the `dark` class to the document root, and keeps the coral action color reserved for consequential actions. The dark palette preserves the same Paper Trail hierarchy with ink-navy navigation, deep blue-green surfaces, warm light text, and accessible focus rings.
+
+## Vercel deployment
+
+This repository includes a `vercel.json` configuration and `api/index.ts` serverless entrypoint for teams that prefer Vercel. The frontend is built with the existing `pnpm build` command into `dist/public`, while `/api/*` requests are routed to a serverless Express function that reuses the tRPC router and scheduled cleanup endpoint.
+
+> Manus WebDev remains the supported primary deployment because it already provides the managed database, secrets, OAuth, custom domain, and heartbeat infrastructure. Vercel is an optional export path and may require additional platform configuration for MySQL/TiDB networking, OAuth callback URLs, secure cookies, and scheduled jobs.
+
+### Vercel setup
+
+1. Import the repository into Vercel and select the branch containing the finished SecureDrop implementation.
+2. Keep the framework preset as **Other** or let the committed `vercel.json` provide the build settings.
+3. Configure the production environment variables from the environment table above, including `DATABASE_URL`, `JWT_SECRET`, `VITE_APP_ID`, `OAUTH_SERVER_URL`, and `VITE_OAUTH_PORTAL_URL`.
+4. Update the OAuth provider’s callback URL to the Vercel deployment origin plus `/api/oauth/callback`.
+5. Confirm that the Vercel project can reach the configured MySQL/TiDB instance over TLS and that its firewall allows Vercel egress.
+6. Configure a Vercel Cron or external scheduler to `POST /api/scheduled/cleanup`. The endpoint still requires the platform heartbeat authentication contract; if Vercel Cron is used instead, adapt the route to a Vercel-specific secret header before enabling destructive cleanup.
+7. Test a complete create → access → burn-after-reading → revoke flow against the Vercel URL before using it with real data.
+
+The Vercel adapter is intentionally isolated in `server/vercel.ts` so the existing Manus Express server and scheduled heartbeat remain unchanged. Do not commit production secrets, and do not treat a successful frontend build as proof that database connectivity, OAuth, or scheduled cleanup are configured correctly.

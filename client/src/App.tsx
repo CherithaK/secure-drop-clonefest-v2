@@ -10,4 +10,4 @@ import Collections from "./pages/Collections";
 import Home from "./pages/Home";
 
 function Router() { return <Switch><Route path="/" component={Home} /><Route path="/drop/:slug" component={Drop} /><Route path="/dashboard" component={Dashboard} /><Route path="/collections" component={Collections} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>; }
-export default function App() { return <ErrorBoundary><ThemeProvider defaultTheme="light"><TooltipProvider><Toaster position="bottom-right" /><Router /></TooltipProvider></ThemeProvider></ErrorBoundary>; }
+export default function App() { return <ErrorBoundary><ThemeProvider defaultTheme="light" switchable><TooltipProvider><Toaster position="bottom-right" /><Router /></TooltipProvider></ThemeProvider></ErrorBoundary>; }

@@ -29,3 +29,6 @@
 - [x] Replace the visible Clara S. profile label with User.
 - [x] Write a contest-ready repository README covering the product, architecture, security, setup, testing, and deployment.
 - [x] Validate the profile rename and README changes, then save a checkpoint.
+- [x] Add a persistent dark mode toggle with accessible labels and system-friendly theme behavior.
+- [x] Add Vercel deployment configuration and document required compatibility/environment steps.
+- [x] Validate dark mode, build output, and Vercel configuration, then save a checkpoint.
