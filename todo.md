@@ -1,0 +1,25 @@
+# SecureDrop full-stack implementation checklist
+
+- [x] Upgrade the static project to the full-stack web-db-user template.
+- [x] Define the drop data model and lifecycle states: ACTIVE, EXPIRED, REVOKED, DESTROYED.
+- [x] Add encrypted ciphertext storage with server-side key handling and no plaintext in dashboard responses.
+- [x] Add HTTP-only session cookie tracking for current-browser created drops.
+- [x] Implement creation constraints: 100,000 characters, custom expiry, view limits, passphrase, burn-after-reading.
+- [x] Implement passphrase verification with failed-attempt throttling and 15-minute lockout.
+- [x] Implement authenticated recipient access without exposing plaintext before successful authentication.
+- [x] Implement burn-after-reading retrieval and destruction in the lifecycle update path.
+- [x] Implement instant owner revocation and ciphertext deletion.
+- [x] Add dashboard listing, status badges, search, and status filters.
+- [x] Add secure link and plaintext copy-to-clipboard feedback.
+- [x] Add high-contrast QR sharing using a zero-dependency QR API.
+- [x] Add scheduled pruning handler for expired, destroyed, and revoked rows.
+- [x] Add clear cookie-loss and lifecycle edge-case UX.
+- [x] Validate typecheck, build, and core security/lifecycle flows.
+- [ ] Save a checkpoint and deliver the upgraded application. (After final verification.)
+- [ ] Register the production pruning heartbeat after the site is published.
+- [x] Add user-facing custom expiry input and custom numeric view-limit input with validation states.
+- [x] Implement explicit expired, revoked, destroyed, and locked recipient screens plus a cookie-loss warning state.
+- [x] Add server-level security coverage for encryption, passphrase verification, and session hashing.
+- [x] Verify composer, dashboard, and recipient lifecycle surfaces in the browser preview.
+- [x] Implement distinct recipient-state UIs for expired, revoked, destroyed, and 15-minute lockout outcomes.
+- [x] Return and display a real cookie-cleared warning state when creator history is unavailable.
