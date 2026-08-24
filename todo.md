@@ -15,8 +15,8 @@
 - [x] Add scheduled pruning handler for expired, destroyed, and revoked rows.
 - [x] Add clear cookie-loss and lifecycle edge-case UX.
 - [x] Validate typecheck, build, and core security/lifecycle flows.
-- [ ] Save a checkpoint and deliver the upgraded application. (After final verification.)
-- [ ] Register the production pruning heartbeat after the site is published.
+- [x] Save a checkpoint and deliver the upgraded application. (After final verification.)
+- [x] Register the production pruning heartbeat after the site is published. Task UID: `Ke4eEtwAxyevqkQ9zuRJcw`.
 - [x] Add user-facing custom expiry input and custom numeric view-limit input with validation states.
 - [x] Implement explicit expired, revoked, destroyed, and locked recipient screens plus a cookie-loss warning state.
 - [x] Add server-level security coverage for encryption, passphrase verification, and session hashing.
