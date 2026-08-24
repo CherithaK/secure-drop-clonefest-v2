@@ -34,7 +34,7 @@
 - [x] Validate dark mode, build output, and Vercel configuration, then save a checkpoint.
 - [ ] Deploy the prepared SecureDrop checkpoint to Vercel without changing Manus hosting.
 - [ ] Verify the Vercel deployment URL and identify any missing production secrets, database, OAuth, or cron configuration.
-- [ ] Fix Vercel deployment 404 so the root route serves the SecureDrop frontend.
+- [x] Fix Vercel deployment 404 so the root route serves the SecureDrop frontend.
 - [ ] Verify Vercel API routing and redeploy the corrected configuration.
 - [x] Make the Protection default control focus and enable passphrase settings in the composer.
 - [x] Make the Expiry rules default control focus the expiry selector in the composer.
@@ -61,4 +61,7 @@
 - [x] Add a real test for markExpired or reconciliation proving an ACTIVE expired drop records an EXPIRED event at transition time.
 - [x] Verify in the browser with an actually expired drop that the dashboard audit timeline renders an EXPIRED event.
 - [x] Strengthen the expiry transition test to assert the inserted audit payload records the same slug, owner session, and kind EXPIRED.
-- [ ] Save a reviewable checkpoint containing the browser-side encryption, audit timeline, safe demo, expiry verification, and README upgrade.
+- [x] Save a reviewable checkpoint containing the browser-side encryption, audit timeline, safe demo, expiry verification, and README upgrade.
+- [ ] Diagnose and resolve the Vercel serverless API crash for the required contest submission URL.
+- [ ] Redeploy the latest `42943bc` security upgrade to the Vercel submission project.
+- [ ] Verify the Vercel create, recipient decrypt, lifecycle, and safe-demo paths using the production URL.

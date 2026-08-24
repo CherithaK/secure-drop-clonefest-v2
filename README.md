@@ -231,7 +231,7 @@ The application includes a persistent dark-mode toggle in the Home header. It us
 
 ## Vercel deployment
 
-This repository includes a `vercel.json` configuration and `api/index.ts` serverless entrypoint for teams that prefer Vercel. The frontend is built with the existing `pnpm build` command into `dist/public`, while `/api/*` requests are routed to a serverless Express function that reuses the tRPC router and scheduled cleanup endpoint.
+This repository includes a `vercel.json` configuration and a Vercel serverless entrypoint for teams that prefer Vercel. The frontend is built with the existing `pnpm build` command into `dist/public`. That same build bundles the Express/tRPC server into `api/index.js`, so the Vercel runtime does not need to resolve the repository's internal TypeScript modules at invocation time. All `/api/*` requests are routed to this self-contained function.
 
 > Manus WebDev remains the supported primary deployment because it already provides the managed database, secrets, OAuth, custom domain, and heartbeat infrastructure. Vercel is an optional export path and may require additional platform configuration for MySQL/TiDB networking, OAuth callback URLs, secure cookies, and scheduled jobs.
 
@@ -245,4 +245,4 @@ This repository includes a `vercel.json` configuration and `api/index.ts` server
 6. Configure a Vercel Cron or external scheduler to `POST /api/scheduled/cleanup`. The endpoint still requires the platform heartbeat authentication contract; if Vercel Cron is used instead, adapt the route to a Vercel-specific secret header before enabling destructive cleanup.
 7. Test a complete create → access → burn-after-reading → revoke flow against the Vercel URL before using it with real data.
 
-The Vercel adapter is intentionally isolated in `server/vercel.ts` so the existing Manus Express server and scheduled heartbeat remain unchanged. Do not commit production secrets, and do not treat a successful frontend build as proof that database connectivity, OAuth, or scheduled cleanup are configured correctly.
+The Vercel adapter is intentionally isolated in `server/vercel.ts`, and `scripts/vercel-entry.ts` is the dedicated bundle entrypoint, so the existing Manus Express server and scheduled heartbeat remain unchanged. Do not commit production secrets, and do not treat a successful frontend build as proof that database connectivity, OAuth, or scheduled cleanup are configured correctly.
