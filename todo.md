@@ -32,3 +32,10 @@
 - [x] Add a persistent dark mode toggle with accessible labels and system-friendly theme behavior.
 - [x] Add Vercel deployment configuration and document required compatibility/environment steps.
 - [x] Validate dark mode, build output, and Vercel configuration, then save a checkpoint.
+- [ ] Deploy the prepared SecureDrop checkpoint to Vercel without changing Manus hosting.
+- [ ] Verify the Vercel deployment URL and identify any missing production secrets, database, OAuth, or cron configuration.
+- [ ] Fix Vercel deployment 404 so the root route serves the SecureDrop frontend.
+- [ ] Verify Vercel API routing and redeploy the corrected configuration.
+- [x] Make the Protection default control focus and enable passphrase settings in the composer.
+- [x] Make the Expiry rules default control focus the expiry selector in the composer.
+- [x] Add visible feedback for both defaults actions and verify the interactions in the browser.

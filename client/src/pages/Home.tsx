@@ -1,5 +1,5 @@
 /* Paper Trail direction: broad note canvas, editorial labels, coral decisions, and plain-language privacy cues. */
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -69,6 +69,25 @@ export default function Home() {
   const [published, setPublished] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
+  const [focusedSetting, setFocusedSetting] = useState<"protection" | "expiry" | null>(null);
+  const protectionControlRef = useRef<HTMLDivElement>(null);
+  const expiryControlRef = useRef<HTMLDivElement>(null);
+
+  function focusDefault(setting: "protection" | "expiry") {
+    setFocusedSetting(setting);
+    if (setting === "protection") {
+      setPassword(true);
+      setShowProtection(true);
+    }
+    window.setTimeout(() => {
+      const target = setting === "protection" ? protectionControlRef.current : expiryControlRef.current;
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+      (target?.querySelector("button, select, input") as HTMLElement | null)?.focus();
+    }, 60);
+    toast.success(setting === "protection" ? "Protection settings ready" : "Expiry rules ready", {
+      description: setting === "protection" ? "Passphrase protection is enabled for this new drop." : "Choose how long this drop should remain available.",
+    });
+  }
 
   const chars = useMemo(() => content.length, [content]);
 
@@ -104,8 +123,8 @@ export default function Home() {
         </nav>
         <div className="rail-divider" />
         <div className="rail-section-label">Your defaults</div>
-        <button className="rail-item rail-subtle"><ShieldCheck size={17} /><span>Protection</span></button>
-        <button className="rail-item rail-subtle"><Clock3 size={17} /><span>Expiry rules</span></button>
+        <button className={`rail-item rail-subtle ${focusedSetting === "protection" ? "settings-active" : ""}`} onClick={() => focusDefault("protection")}><ShieldCheck size={17} /><span>Protection</span></button>
+        <button className={`rail-item rail-subtle ${focusedSetting === "expiry" ? "settings-active" : ""}`} onClick={() => focusDefault("expiry")}><Clock3 size={17} /><span>Expiry rules</span></button>
         <div className="rail-footer">
           <div className="privacy-stamp"><ShieldCheck size={16} /><div><strong>Private by design</strong><span>Zero knowledge storage</span></div></div>
           <button className="account-row"><div className="avatar">U</div><div><strong>User</strong><span>Personal workspace</span></div><ChevronDown size={15} /></button>
@@ -145,12 +164,12 @@ export default function Home() {
               <div className="editor-footer"><span>{chars.toLocaleString()} characters</span><span className="encryption-note"><KeyRound size={14} /> Encrypted in your browser</span></div>
             </div>
 
-            <aside className={`protection-card ${showProtection ? "expanded" : ""}`}>
+            <aside className={`protection-card ${showProtection ? "expanded" : ""} ${focusedSetting ? "settings-emphasis" : ""}`}>
               <div className="protection-heading"><div><div className="object-label"><ShieldCheck size={14} /> PROTECTION</div><h2>Set the boundary.</h2></div><div className="shield-seal"><ShieldCheck size={18} /></div></div>
               <p className="protection-copy">Choose how this note leaves your hands. Every setting below names the boundary it creates.</p>
               <div className="control-group"><label>Access mode</label><div className="segmented"><button className={access === "link" ? "selected" : ""} onClick={() => setAccess("link")}><Link2 size={15} /> Private link</button><button className={access === "team" ? "selected" : ""} onClick={() => setAccess("team")}><Layers3 size={15} /> Team</button></div></div>
-              <div className="control-group"><label>Self-destruct</label><div className="select-wrap"><select value={expiry} onChange={(e) => setExpiry(e.target.value)}><option>Burn after reading</option><option>In 1 hour</option><option>In 24 hours</option><option>In 7 days</option><option>Custom</option><option>Never</option></select><ChevronDown size={15} /></div>{expiry === "Custom" && <input className="custom-number-input" type="number" min={1} max={525600} value={customExpiry} onChange={(e) => setCustomExpiry(Number(e.target.value))} placeholder="Minutes" />}</div>
-              <div className="toggle-row"><div><strong>Require a passphrase</strong><span>Extra layer for the link</span></div><button className={`switch ${password ? "on" : ""}`} role="switch" aria-checked={password} onClick={() => setPassword(!password)}><span /></button></div>{password && <input className="passphrase-input" type="password" minLength={8} value={passphrase} onChange={(e) => setPassphrase(e.target.value)} placeholder="Passphrase · 8+ characters" aria-label="Passphrase" />}<div className="view-limit-row"><label>View limit</label><select value={viewLimit} onChange={(e) => setViewLimit(Number(e.target.value))}><option value={1}>1 view</option><option value={3}>3 views</option><option value={5}>5 views</option><option value={10}>10 views</option><option value={0}>Custom</option></select>{viewLimit === 0 && <input className="custom-number-input" type="number" min={1} max={100} value={customViewLimit} onChange={(e) => setCustomViewLimit(Number(e.target.value))} placeholder="Views" />}</div>
+              <div className="control-group" ref={expiryControlRef}><label>Self-destruct</label><div className="select-wrap"><select value={expiry} onChange={(e) => setExpiry(e.target.value)}><option>Burn after reading</option><option>In 1 hour</option><option>In 24 hours</option><option>In 7 days</option><option>Custom</option><option>Never</option></select><ChevronDown size={15} /></div>{expiry === "Custom" && <input className="custom-number-input" type="number" min={1} max={525600} value={customExpiry} onChange={(e) => setCustomExpiry(Number(e.target.value))} placeholder="Minutes" />}</div>
+              <div className="toggle-row" ref={protectionControlRef}><div><strong>Require a passphrase</strong><span>Extra layer for the link</span></div><button className={`switch ${password ? "on" : ""}`} role="switch" aria-checked={password} onClick={() => setPassword(!password)}><span /></button></div>{password && <input className="passphrase-input" type="password" minLength={8} value={passphrase} onChange={(e) => setPassphrase(e.target.value)} placeholder="Passphrase · 8+ characters" aria-label="Passphrase" />}<div className="view-limit-row"><label>View limit</label><select value={viewLimit} onChange={(e) => setViewLimit(Number(e.target.value))}><option value={1}>1 view</option><option value={3}>3 views</option><option value={5}>5 views</option><option value={10}>10 views</option><option value={0}>Custom</option></select>{viewLimit === 0 && <input className="custom-number-input" type="number" min={1} max={100} value={customViewLimit} onChange={(e) => setCustomViewLimit(Number(e.target.value))} placeholder="Views" />}</div>
               <button className="advanced-toggle" onClick={() => setShowProtection(!showProtection)}>{showProtection ? "Hide" : "Show"} advanced controls <ChevronDown size={14} className={showProtection ? "rotate" : ""} /></button>
               {showProtection && <div className="advanced-panel"><label><input type="checkbox" defaultChecked /> Disable indexing</label><label><input type="checkbox" /> Allow anonymous replies</label><label><input type="checkbox" defaultChecked /> Notify me before expiry</label></div>}
               <button className="publish-button" onClick={publish}><span>Create drop & set its boundary</span><ArrowUpRight size={18} /></button>
