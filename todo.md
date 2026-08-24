@@ -23,3 +23,6 @@
 - [x] Verify composer, dashboard, and recipient lifecycle surfaces in the browser preview.
 - [x] Implement distinct recipient-state UIs for expired, revoked, destroyed, and 15-minute lockout outcomes.
 - [x] Return and display a real cookie-cleared warning state when creator history is unavailable.
+- [x] Fix My drops navigation so it opens the session ledger dashboard.
+- [x] Fix Collections navigation so it opens a functional collections workspace.
+- [x] Verify both navigation buttons and routes in the browser preview.

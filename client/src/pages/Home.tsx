@@ -1,5 +1,6 @@
 /* Paper Trail direction: broad note canvas, editorial labels, coral decisions, and plain-language privacy cues. */
 import { useMemo, useState } from "react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -47,6 +48,7 @@ export default function Home() {
   // nonce cookie and must run only at the moment of navigation.
   let { user, loading, error, isAuthenticated, logout } = useAuth();
 
+  const [, setLocation] = useLocation();
   const [content, setContent] = useState("Paste a note, secret, or handoff here…");
   const [title, setTitle] = useState("");
   const [expiry, setExpiry] = useState("Burn after reading");
@@ -93,8 +95,8 @@ export default function Home() {
         <div className="rail-section-label">Workspace</div>
         <nav className="rail-nav" aria-label="Workspace navigation">
           <button className="rail-item active"><Plus size={17} /><span>New drop</span><kbd>N</kbd></button>
-          <button className="rail-item"><Archive size={17} /><span>My drops</span><em>3</em></button>
-          <button className="rail-item"><Layers3 size={17} /><span>Collections</span></button>
+          <button className="rail-item" onClick={() => setLocation("/dashboard")}><Archive size={17} /><span>My drops</span><em>{dashboard.data?.drops?.length ?? 0}</em></button>
+          <button className="rail-item" onClick={() => setLocation("/collections")}><Layers3 size={17} /><span>Collections</span></button>
         </nav>
         <div className="rail-divider" />
         <div className="rail-section-label">Your defaults</div>
