@@ -48,4 +48,17 @@
 - [x] Save a new checkpoint after the verified profile-menu overlap fix.
 - [x] Open the profile menu at a 438px-wide viewport and verify in-browser that it stays fully within the viewport and above surrounding artwork.
 - [x] Save a new checkpoint after the overlap fix is confirmed at mobile width.
-- [ ] Save a new checkpoint after the verified mobile-width profile-menu overlap fix.
+- [x] Save a new checkpoint after the verified mobile-width profile-menu overlap fix.
+- [x] Encrypt new drop content in the browser using a random AES-GCM key stored only in the share URL fragment.
+- [x] Keep the server blind to plaintext and client decryption keys while preserving lifecycle controls.
+- [x] Add recipient-side fragment-key decryption, reveal states, and a clear destroyed-after-reading outcome.
+- [x] Add a privacy-preserving owner audit timeline for creation, access, passphrase failure, revocation, expiry, and destruction events.
+- [x] Add clearly labeled safe local demo scenarios for a reliable contest walkthrough.
+- [x] Validate client encryption, recipient reveal, burn-after-reading, audit visibility, and demo flows.
+- [x] Save a checkpoint and document the competition-ready upgrade.
+- [x] Log EXPIRED when a drop transitions from ACTIVE to EXPIRED during expiry checks or dashboard reconciliation.
+- [x] Add coverage for expiry audit creation and verify the dashboard timeline displays the expiry event.
+- [x] Add a real test for markExpired or reconciliation proving an ACTIVE expired drop records an EXPIRED event at transition time.
+- [x] Verify in the browser with an actually expired drop that the dashboard audit timeline renders an EXPIRED event.
+- [x] Strengthen the expiry transition test to assert the inserted audit payload records the same slug, owner session, and kind EXPIRED.
+- [ ] Save a reviewable checkpoint containing the browser-side encryption, audit timeline, safe demo, expiry verification, and README upgrade.

@@ -3,11 +3,13 @@ import { useRoute } from "wouter";
 import { Copy, KeyRound, QrCode, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { decryptFromShare, fragmentKeyFromLocation } from "@/lib/fragmentCrypto";
 
 export default function Drop() {
   const [, params] = useRoute("/drop/:slug");
   const [passphrase, setPassphrase] = useState("");
   const [secret, setSecret] = useState<string | null>(null);
+  const [destroyedAfterView, setDestroyedAfterView] = useState(false);
   const [lifecycle, setLifecycle] = useState<"EXPIRED" | "REVOKED" | "DESTROYED" | "LOCKED" | null>(null);
   const access = trpc.drops.access.useMutation();
   const slug = params?.slug || "";
@@ -15,8 +17,12 @@ export default function Drop() {
 
   async function unlock() {
     try {
+      const fragmentKey = fragmentKeyFromLocation();
+      if (!fragmentKey) throw new Error("This link is missing its browser-only decryption key.");
       const result = await access.mutateAsync({ slug, passphrase: passphrase || undefined });
-      setSecret(result.secret);
+      const plaintext = await decryptFromShare({ ciphertext: result.ciphertext, iv: result.iv, authTag: result.authTag, fragmentKey });
+      setSecret(plaintext);
+      setDestroyedAfterView(result.destroyedAfterView);
       toast.success(result.destroyedAfterView ? "Opened once, then destroyed" : "Secret decrypted");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Could not open this drop";
@@ -40,8 +46,9 @@ export default function Drop() {
         {secret ? (
           <>
             <h1>Decrypted for you.</h1>
-            <p className="drop-lead">This content was revealed after successful authentication. Treat it like a copied key: it will not be available again if the owner set burn-after-reading.</p>
+            <p className="drop-lead">This content was decrypted locally in this browser. The server only ever handled ciphertext; the decryption key stays in this link fragment.</p>
             <div className="secret-reveal"><pre>{secret}</pre><button onClick={copy}><Copy size={16} /> Copy secret</button></div>
+            {destroyedAfterView && <div className="drop-safe-note"><ShieldCheck size={15} /> This was the permitted reveal. The encrypted payload has now been destroyed.</div>}
             <div className="qr-card"><div><QrCode size={22} /><strong>Continue on mobile</strong><span>Scan to open this same boundary on another device.</span></div><img alt="QR code for this secure drop" src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&color=10242b&bgcolor=f4f0e8&data=${encodeURIComponent(shareUrl)}`} /></div>
           </>
         ) : lifecycle ? (

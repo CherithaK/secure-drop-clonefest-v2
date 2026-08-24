@@ -52,35 +52,36 @@ Scheduled heartbeat
 
 | Path | Responsibility |
 | --- | --- |
-| `client/src/pages/Home.tsx` | Secure drop composer and recent-drop surface. |
-| `client/src/pages/Dashboard.tsx` | Session-scoped dashboard with search, filters, statuses, copy, and revocation. |
-| `client/src/pages/Drop.tsx` | Recipient authentication, lifecycle outcomes, decrypted reveal, copy, and QR sharing. |
+| `client/src/pages/Home.tsx` | Secure drop composer, browser-side encryption handoff, safe demo scenario, and recent-drop surface. |
+| `client/src/pages/Dashboard.tsx` | Session-scoped dashboard with search, filters, statuses, copy, revocation, and metadata-only audit trail. |
+| `client/src/pages/Drop.tsx` | Recipient authentication, browser-side decryption, lifecycle outcomes, copy, and QR sharing. |
+| `client/src/lib/fragmentCrypto.ts` | Browser Web Crypto helpers for random AES-GCM keys, ciphertext, and URL-fragment key handling. |
 | `client/src/pages/Collections.tsx` | Collection workspace and collection creation flow. |
 | `client/src/App.tsx` | Route registration for `/`, `/dashboard`, `/collections`, and `/drop/:slug`. |
 | `client/src/index.css` | Paper Trail design system, responsive layout, states, and motion. |
 | `server/routers.ts` | Typed tRPC contracts for creation, dashboard, access, and revocation. |
-| `server/dropCrypto.ts` | AES-GCM encryption, passphrase hashing, creator-session primitives, and share URLs. |
-| `server/db.ts` | Drizzle query helpers for lifecycle operations. |
+| `server/dropCrypto.ts` | Passphrase hashing, creator-session primitives, and share URLs; it has no plaintext encryption or decryption function. |
+| `server/db.ts` | Drizzle query helpers for lifecycle operations and private audit events. |
 | `server/_core/index.ts` | Express server entrypoint and scheduled cleanup route. |
-| `drizzle/schema.ts` | `users` and `secure_drops` database models. |
-| `server/drop.security.test.ts` | Cryptography and session-hashing tests. |
+| `drizzle/schema.ts` | `users`, `secure_drops`, and `secure_drop_events` database models. |
+| `server/drop.security.test.ts`, `client/src/lib/fragmentCrypto.test.ts` | Session/passphrase and browser-encryption tests. |
 | `todo.md` | Implementation history and completion checklist. |
 
 ## Security model
 
 ### Confidentiality boundary
 
-The browser submits content to the server over HTTPS. The server encrypts the content using authenticated encryption before writing it to the database. The `secure_drops` row stores `ciphertext`, `iv`, and `authTag`; it does not store plaintext. Dashboard procedures return metadata only.
+The browser creates a random 256-bit AES-GCM key for every new drop, encrypts the note locally, and sends only `ciphertext`, `iv`, and `authTag` to the server. The decryption key is encoded only in the URL fragment as `#k=…`; fragments are not included in HTTP requests. The `secure_drops` row does not store plaintext or a decryption key, and dashboard procedures return metadata only.
 
-Decryption occurs only after the access procedure has validated the drop state and, when configured, verified the passphrase. The recipient page deliberately renders an authentication boundary before making a secret request. A rejected request returns a lifecycle or authentication error, never secret content.
+The access procedure validates lifecycle state and, when configured, verifies the passphrase before returning the encrypted payload. The recipient page then decrypts it locally with the fragment key. A rejected request returns a lifecycle or authentication error, never plaintext; the server has no capability to decrypt the payload.
 
 ### Passphrase protection
 
-Passphrases are stored as one-way SHA-256 digests with a per-passphrase random salt. The access procedure tracks failed attempts. Five incorrect attempts set `lockedUntil` to 15 minutes in the future and subsequent attempts are rejected until the lock expires. Successful authentication clears the failure counter.
+Passphrases are stored as one-way scrypt-derived verifiers using managed server secret material. The access procedure tracks failed attempts. Five incorrect attempts set `lockedUntil` to 15 minutes in the future and subsequent attempts are rejected until the lock expires. Successful authentication clears the failure counter.
 
 ### Destructive lifecycle operations
 
-A burn-after-reading drop is decrypted for the successful request and then destroyed through the lifecycle update path. A drop also destroys itself when its configured view limit is reached. Owner revocation is restricted to the creator-session hash and removes the ciphertext immediately. Expiration is enforced both by the cleanup handler and at access time, so stale rows do not remain readable while waiting for pruning.
+A burn-after-reading drop releases its encrypted payload for the authenticated recipient request and then destroys the stored ciphertext through the lifecycle update path. The recipient can decrypt only with the browser-held fragment key. A drop also destroys itself when its configured view limit is reached. Owner revocation is restricted to the creator-session hash and removes the ciphertext immediately. Expiration is enforced both by the cleanup handler and at access time, so stale rows do not remain readable while waiting for pruning.
 
 ### Creator history
 
@@ -108,6 +109,12 @@ The primary feature table is `secure_drops`:
 | `lastViewedAt` | Latest successful reveal timestamp. |
 
 The schema includes indexes for owner-session lookup and lifecycle pruning.
+
+`secure_drop_events` stores the owner-session hash, drop slug, lifecycle event type, and timestamp. It deliberately excludes plaintext, decryption keys, IP addresses, and recipient identity. The dashboard shows this trail as a creator-only audit view.
+
+## Contest demo mode
+
+The composer includes a **Load safe demo scenario** action. It fills the form with clearly labeled fictional handoff text, a burn-after-reading boundary, one permitted view, and the visible passphrase `demo-boundary`. The data does not include credentials, customer information, or live service links. Use it to demonstrate creation, fragment-key sharing, recipient authentication, local decryption, destruction, and the owner audit trail in a reliable sequence.
 
 ## Local development
 

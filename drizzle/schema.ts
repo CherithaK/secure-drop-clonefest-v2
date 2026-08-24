@@ -35,7 +35,19 @@ export const secureDrops = mysqlTable("secure_drops", {
   lifecycleIdx: index("secure_drops_lifecycle_idx").on(table.status, table.expiresAt),
 }));
 
+export const secureDropEvents = mysqlTable("secure_drop_events", {
+  id: int("id").autoincrement().primaryKey(),
+  ownerSessionHash: varchar("ownerSessionHash", { length: 128 }).notNull(),
+  dropSlug: varchar("dropSlug", { length: 24 }).notNull(),
+  kind: mysqlEnum("kind", ["CREATED", "OPENED", "PASSPHRASE_REJECTED", "REVOKED", "EXPIRED", "DESTROYED"]).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  ownerSessionIdx: index("secure_drop_events_owner_session_idx").on(table.ownerSessionHash, table.createdAt),
+  dropIdx: index("secure_drop_events_drop_idx").on(table.dropSlug, table.createdAt),
+}));
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type SecureDrop = typeof secureDrops.$inferSelect;
 export type InsertSecureDrop = typeof secureDrops.$inferInsert;
+export type SecureDropEvent = typeof secureDropEvents.$inferSelect;

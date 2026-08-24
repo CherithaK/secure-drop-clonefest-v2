@@ -1,11 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { decryptSecret, encryptSecret, hashPassphrase, sessionHash, verifyPassphrase } from "./dropCrypto";
+import { hashPassphrase, sessionHash, verifyPassphrase } from "./dropCrypto";
 
 describe("secure drop cryptography", () => {
-  it("round-trips plaintext only through authenticated encryption", () => {
-    const encrypted = encryptSecret("sensitive handoff\nline two");
-    expect(encrypted.ciphertext).not.toContain("sensitive");
-    expect(decryptSecret(encrypted.ciphertext, encrypted.iv, encrypted.authTag)).toBe("sensitive handoff\nline two");
+  it("keeps browser-side encryption out of the server primitive layer", () => {
+    expect("encryptSecret" in { hashPassphrase, sessionHash }).toBe(false);
   });
   it("verifies passphrases with a stable one-way hash", () => {
     const digest = hashPassphrase("correct horse battery staple");

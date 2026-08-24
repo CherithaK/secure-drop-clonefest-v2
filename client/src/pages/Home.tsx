@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { encryptForShare } from "@/lib/fragmentCrypto";
 import { toast } from "sonner";
 import {
   Archive,
@@ -91,6 +92,17 @@ export default function Home() {
     });
   }
 
+  function loadSafeDemo() {
+    setTitle("Demo — incident bridge handoff");
+    setContent("DEMO CONTENT — SAFE FOR PRESENTATION\n\nIncident bridge: https://meet.example.test/secure-room\nRotation note: confirm the release owner before continuing.\n\nThis is clearly labeled fictional demo content. It does not contain credentials, customer data, or a live service link.");
+    setExpiry("Burn after reading");
+    setViewLimit(1);
+    setPassword(true);
+    setPassphrase("demo-boundary");
+    setShowProtection(true);
+    toast.success("Safe demo scenario loaded", { description: "Fictional content only. Create it to demonstrate the one-time flow." });
+  }
+
   const chars = useMemo(() => content.length, [content]);
 
   async function publish() {
@@ -99,7 +111,7 @@ export default function Home() {
     const effectiveViewLimit = viewLimit === 0 ? customViewLimit : viewLimit;
     const effectiveExpiry = expiry === "Custom" ? customExpiry : expiry === "Burn after reading" ? 1440 : expiry === "In 1 hour" ? 60 : expiry === "In 24 hours" ? 1440 : expiry === "In 7 days" ? 10080 : 525600;
     if (effectiveExpiry < 1 || effectiveExpiry > 525600 || effectiveViewLimit < 1 || effectiveViewLimit > 100) { toast.error("Check the drop boundary.", { description: "Expiry must be 1–525,600 minutes and views must be 1–100." }); return; }
-    try { const result = await createDrop.mutateAsync({ title, content, expirationMinutes: effectiveExpiry, viewLimit: effectiveViewLimit, passphrase: password ? passphrase : undefined, burnAfterReading: expiry === "Burn after reading" }); setCreatedUrl(result.url); setPublished(true); dashboard.refetch(); toast.success("Drop created", { description: "Your protected link is ready to share." }); } catch (error) { toast.error(error instanceof Error ? error.message : "Could not create this drop."); }
+    try { const encrypted = await encryptForShare(content); const result = await createDrop.mutateAsync({ title, ciphertext: encrypted.ciphertext, iv: encrypted.iv, authTag: encrypted.authTag, expirationMinutes: effectiveExpiry, viewLimit: effectiveViewLimit, passphrase: password ? passphrase : undefined, burnAfterReading: expiry === "Burn after reading" }); setCreatedUrl(`${result.url}#k=${encrypted.fragmentKey}`); setPublished(true); dashboard.refetch(); toast.success("Drop encrypted in this browser", { description: "Only the sharing URL carries the decryption key." }); } catch (error) { toast.error(error instanceof Error ? error.message : "Could not create this drop."); }
   }
 
   function copyLink() {
@@ -152,7 +164,7 @@ export default function Home() {
             <div>
               <div className="eyebrow"><span className="eyebrow-dot" /> NEW DROP / PRIVATE COMPOSER</div>
               <h1>Share the note.<br /><i>Keep the boundary.</i></h1>
-              <p className="intro-copy">A secure place for the things that should not live in a chat log, inbox, or permanent document.</p>
+              <p className="intro-copy">A secure place for the things that should not live in a chat log, inbox, or permanent document.</p><button className="demo-button" onClick={loadSafeDemo}><Sparkles size={15} /> Load safe demo scenario</button>
             </div>
             <div className="intro-art" style={{ backgroundImage: `url(${heroImage})` }} aria-hidden="true"><span>01</span><span className="art-caption">ONE-TIME / ENCRYPTED</span></div>
           </section>

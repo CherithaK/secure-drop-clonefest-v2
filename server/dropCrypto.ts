@@ -22,21 +22,6 @@ export function attachCreatorCookie(res: { cookie: (name: string, value: string,
   res.cookie(COOKIE, value, { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: TTL_SECONDS });
 }
 
-export function encryptSecret(plaintext: string) {
-  const key = crypto.createHash("sha256").update(secret()).digest();
-  const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
-  const ciphertext = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
-  return { ciphertext: ciphertext.toString("base64url"), iv: iv.toString("base64url"), authTag: cipher.getAuthTag().toString("base64url") };
-}
-
-export function decryptSecret(ciphertext: string, iv: string, authTag: string) {
-  const key = crypto.createHash("sha256").update(secret()).digest();
-  const decipher = crypto.createDecipheriv("aes-256-gcm", key, Buffer.from(iv, "base64url"));
-  decipher.setAuthTag(Buffer.from(authTag, "base64url"));
-  return Buffer.concat([decipher.update(Buffer.from(ciphertext, "base64url")), decipher.final()]).toString("utf8");
-}
-
 export function hashPassphrase(value: string) {
   return crypto.scryptSync(value, secret().slice(0, 16), 32).toString("hex");
 }
