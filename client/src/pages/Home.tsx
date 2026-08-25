@@ -117,7 +117,7 @@ export default function Home() {
     try {
       const encrypted = await encryptForShare(content);
       if (browserDemo) {
-        setCreatedUrl(createBrowserDemoUrl({ v: 1, title: title || "Untitled browser demo", ciphertext: encrypted.ciphertext, iv: encrypted.iv, authTag: encrypted.authTag, fragmentKey: encrypted.fragmentKey, burnAfterReading: expiry === "Burn after reading", expiresAt: Date.now() + effectiveExpiry * 60_000 }));
+        setCreatedUrl(createBrowserDemoUrl({ v: 1, id: crypto.randomUUID(), title: title || "Untitled browser demo", ciphertext: encrypted.ciphertext, iv: encrypted.iv, authTag: encrypted.authTag, fragmentKey: encrypted.fragmentKey, burnAfterReading: expiry === "Burn after reading", expiresAt: Date.now() + effectiveExpiry * 60_000 }));
         setPublished(true);
         toast.success("Self-contained encrypted demo link created", { description: "Vercel demo mode: no server or database received this note." });
         return;

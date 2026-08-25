@@ -74,7 +74,8 @@
 - [x] Preserve HTTPS in Vercel share URLs by honoring the proxy-forwarded protocol header.
 - [x] Replace the Vercel database dependency with a transparent database-free contest demo flow.
 - [x] Clearly disclose that the database-free Vercel demo uses local browser state and does not provide durable recipient access, owner history, revocation, or audit persistence.
-- [ ] Verify the database-free Vercel demo creates, decrypts locally, and presents its browser-local consumption lifecycle honestly after the copy correction is live.
+- [ ] Verify the database-free Vercel demo creates, decrypts locally, and presents its browser-local consumption lifecycle honestly after the per-link consumption-key correction is live.
 - [x] Update the README with the database-free Vercel contest-demo mode, demo walkthrough, and explicit limitation table.
-- [ ] Clarify the Vercel demo’s consumed-state screen so it explicitly describes browser-local, not global, destruction.
-- [ ] Redeploy and re-test the corrected Vercel browser-demo consumed-state copy after one local reveal.
+- [x] Clarify the Vercel demo’s consumed-state screen so it explicitly describes browser-local, not global, destruction.
+- [ ] Key Vercel browser-demo consumption state by a unique per-link identifier rather than the constant `browser-demo` slug.
+- [ ] Redeploy and re-test a fresh browser-demo link: first opening must decrypt locally, then the same browser must show the local consumed message on second opening.

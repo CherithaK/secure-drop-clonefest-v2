@@ -25,11 +25,11 @@ export default function Drop() {
       if (browserDemo) {
         if (!localPayload) throw new Error("This browser demo link is missing its encrypted payload.");
         if (Date.now() > localPayload.expiresAt) { setLifecycle("EXPIRED"); return; }
-        if (localPayload.burnAfterReading && sessionStorage.getItem(browserDemoConsumptionKey(slug))) { setLifecycle("DESTROYED"); return; }
+        if (localPayload.burnAfterReading && sessionStorage.getItem(browserDemoConsumptionKey(localPayload.id))) { setLifecycle("DESTROYED"); return; }
         const plaintext = await decryptFromShare({ ciphertext: localPayload.ciphertext, iv: localPayload.iv, authTag: localPayload.authTag, fragmentKey });
         setSecret(plaintext);
         setDestroyedAfterView(localPayload.burnAfterReading);
-        if (localPayload.burnAfterReading) sessionStorage.setItem(browserDemoConsumptionKey(slug), "1");
+        if (localPayload.burnAfterReading) sessionStorage.setItem(browserDemoConsumptionKey(localPayload.id), "1");
         toast.success(localPayload.burnAfterReading ? "Revealed and locally marked consumed" : "Self-contained demo decrypted locally");
         return;
       }

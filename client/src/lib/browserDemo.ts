@@ -1,5 +1,6 @@
 export type BrowserDemoPayload = {
   v: 1;
+  id: string;
   title: string;
   ciphertext: string;
   iv: string;
@@ -44,13 +45,13 @@ export function browserDemoPayloadFromLocation(): BrowserDemoPayload | null {
 
   try {
     const payload = JSON.parse(decoder.decode(fromBase64Url(value))) as BrowserDemoPayload;
-    if (payload.v !== 1 || !payload.ciphertext || !payload.iv || !payload.authTag || !payload.title) return null;
+    if (payload.v !== 1 || !payload.id || !payload.ciphertext || !payload.iv || !payload.authTag || !payload.title) return null;
     return payload;
   } catch {
     return null;
   }
 }
 
-export function browserDemoConsumptionKey(slug: string) {
-  return `securedrop:browser-demo-consumed:${slug}`;
+export function browserDemoConsumptionKey(linkId: string) {
+  return `securedrop:browser-demo-consumed:${linkId}`;
 }
