@@ -81,6 +81,6 @@
 - [x] Redeploy and re-test a fresh browser-demo link: first opening must decrypt locally, then the same browser must show the local consumed message on second opening.
 
 - [x] Replace the broken SecureDrop header image reference with a reliable inline brand mark.
-- [ ] Verify the fixed brand mark at desktop and mobile Vercel widths.
-- [ ] Deploy the inline SecureDrop brand-mark fix to Vercel and verify the live header at desktop width.
-- [ ] Verify the live Vercel mobile header and navigation show the inline brand mark without a broken-image placeholder.
+- [x] Verify the fixed brand mark at desktop and mobile Vercel widths.
+- [x] Deploy the inline SecureDrop brand-mark fix to Vercel and verify the live header at desktop width.
+- [x] Verify the live Vercel mobile header and navigation show the inline brand mark without a broken-image placeholder.
