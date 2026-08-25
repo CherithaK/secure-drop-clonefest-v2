@@ -30,6 +30,7 @@ import { parse as parseCookieHeader2 } from "cookie";
 // server/db.ts
 import { and, desc, eq, lt, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 
 // drizzle/schema.ts
 import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, index } from "drizzle-orm/mysql-core";
@@ -101,12 +102,25 @@ function databaseErrorMetadata(error) {
     name: typeof cause.name === "string" ? cause.name : "DatabaseError"
   };
 }
+function createTiDbCloudPool(databaseUrl) {
+  const url = new URL(databaseUrl);
+  return mysql.createPool({
+    host: url.hostname,
+    port: url.port ? Number(url.port) : 4e3,
+    user: decodeURIComponent(url.username),
+    password: decodeURIComponent(url.password),
+    database: url.pathname.replace(/^\//, ""),
+    ssl: { rejectUnauthorized: true }
+  });
+}
 async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      const databaseUrl = process.env.DATABASE_URL;
+      const hostname = new URL(databaseUrl).hostname;
+      _db = hostname.endsWith(".tidbcloud.com") ? drizzle({ client: createTiDbCloudPool(databaseUrl) }) : drizzle(databaseUrl);
     } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
+      console.warn("[Database] Failed to initialize:", databaseErrorMetadata(error));
     }
   }
   return _db;

@@ -66,3 +66,7 @@
 - [x] Redeploy the latest `42943bc` security upgrade to the Vercel submission project.
 - [ ] Verify the Vercel create, recipient decrypt, lifecycle, and safe-demo paths using the production URL.
 - [x] Add safe server-side logging for the Vercel TiDB insert failure and replace raw database errors in the public create-drop response.
+- [ ] Configure an explicit certificate-verified TiDB Cloud MySQL connection for the Vercel runtime and retest production writes.
+- [ ] Redeploy the TiDB TLS connection update to the Vercel submission project and confirm the live deployment uses the new commit.
+- [ ] Re-run the Vercel safe demo create flow and verify the production write succeeds without database errors.
+- [ ] Verify recipient decryption, destruction-after-view, and dashboard audit behavior on the Vercel URL after a successful production write.

@@ -1,5 +1,6 @@
 import { and, desc, eq, lt, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 import { InsertSecureDrop, InsertUser, secureDropEvents, secureDrops, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -16,7 +17,34 @@ function databaseErrorMetadata(error: unknown) {
     name: typeof cause.name === "string" ? cause.name : "DatabaseError",
   };
 }
-export async function getDb() { if (!_db && process.env.DATABASE_URL) { try { _db = drizzle(process.env.DATABASE_URL); } catch (error) { console.warn("[Database] Failed to connect:", error); } } return _db; }
+
+export function createTiDbCloudPool(databaseUrl: string) {
+  const url = new URL(databaseUrl);
+
+  return mysql.createPool({
+    host: url.hostname,
+    port: url.port ? Number(url.port) : 4000,
+    user: decodeURIComponent(url.username),
+    password: decodeURIComponent(url.password),
+    database: url.pathname.replace(/^\//, ""),
+    ssl: { rejectUnauthorized: true },
+  });
+}
+
+export async function getDb() {
+  if (!_db && process.env.DATABASE_URL) {
+    try {
+      const databaseUrl = process.env.DATABASE_URL;
+      const hostname = new URL(databaseUrl).hostname;
+      _db = hostname.endsWith(".tidbcloud.com")
+        ? drizzle({ client: createTiDbCloudPool(databaseUrl) }) as unknown as ReturnType<typeof drizzle>
+        : drizzle(databaseUrl);
+    } catch (error) {
+      console.warn("[Database] Failed to initialize:", databaseErrorMetadata(error));
+    }
+  }
+  return _db;
+}
 export async function upsertUser(user: InsertUser): Promise<void> { if (!user.openId) throw new Error("User openId is required for upsert"); const db = await getDb(); if (!db) return; const values: InsertUser = { openId: user.openId, name: user.name, email: user.email, loginMethod: user.loginMethod, lastSignedIn: user.lastSignedIn ?? new Date(), role: user.role ?? (user.openId === ENV.ownerOpenId ? "admin" : "user") }; await db.insert(users).values(values).onDuplicateKeyUpdate({ set: { name: values.name ?? null, email: values.email ?? null, loginMethod: values.loginMethod ?? null, lastSignedIn: values.lastSignedIn, role: values.role } }); }
 export async function getUserByOpenId(openId: string) { const db = await getDb(); if (!db) return undefined; const rows = await db.select().from(users).where(eq(users.openId, openId)).limit(1); return rows[0]; }
 export async function insertDrop(input: InsertSecureDrop) {
