@@ -33,7 +33,10 @@ export function verifyPassphrase(value: string, expected: string) {
 }
 
 export function makeShareUrl(req: { protocol: string; get: (name: string) => string | undefined }, slug: string) {
-  return `${req.protocol}://${req.get("host") || "securedrop.local"}/drop/${slug}`;
+  const forwardedProtocol = req.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  const protocol = forwardedProtocol || req.protocol || "https";
+
+  return `${protocol}://${req.get("host") || "securedrop.local"}/drop/${slug}`;
 }
 
 export { COOKIE };

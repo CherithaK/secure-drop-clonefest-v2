@@ -71,3 +71,4 @@
 - [ ] Re-run the Vercel safe demo create flow and verify the production write succeeds without database errors.
 - [ ] Verify recipient decryption, destruction-after-view, and dashboard audit behavior on the Vercel URL after a successful production write.
 - [x] Surface only the non-sensitive TiDB driver error code in the failed create response to complete production connection diagnosis.
+- [ ] Preserve HTTPS in Vercel share URLs by honoring the proxy-forwarded protocol header.

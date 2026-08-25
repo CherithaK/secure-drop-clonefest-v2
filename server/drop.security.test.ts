@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hashPassphrase, sessionHash, verifyPassphrase } from "./dropCrypto";
+import { hashPassphrase, makeShareUrl, sessionHash, verifyPassphrase } from "./dropCrypto";
 
 describe("secure drop cryptography", () => {
   it("keeps browser-side encryption out of the server primitive layer", () => {
@@ -13,5 +13,13 @@ describe("secure drop cryptography", () => {
   it("creates deterministic, non-plaintext session ownership keys", () => {
     expect(sessionHash("browser-session")).toBe(sessionHash("browser-session"));
     expect(sessionHash("browser-session")).not.toContain("browser-session");
+  });
+  it("preserves HTTPS when a Vercel proxy forwards to an internal HTTP handler", () => {
+    const url = makeShareUrl({
+      protocol: "http",
+      get: (name) => name === "host" ? "secure-drop-clonefest-v3.vercel.app" : name === "x-forwarded-proto" ? "https" : undefined,
+    }, "demo-slug");
+
+    expect(url).toBe("https://secure-drop-clonefest-v3.vercel.app/drop/demo-slug");
   });
 });

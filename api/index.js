@@ -721,7 +721,9 @@ function verifyPassphrase(value, expected) {
   return actual.length === target.length && crypto.timingSafeEqual(actual, target);
 }
 function makeShareUrl(req, slug) {
-  return `${req.protocol}://${req.get("host") || "securedrop.local"}/drop/${slug}`;
+  const forwardedProtocol = req.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  const protocol = forwardedProtocol || req.protocol || "https";
+  return `${protocol}://${req.get("host") || "securedrop.local"}/drop/${slug}`;
 }
 
 // server/routers.ts
