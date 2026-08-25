@@ -79,3 +79,8 @@
 - [x] Clarify the Vercel demo’s consumed-state screen so it explicitly describes browser-local, not global, destruction.
 - [x] Key Vercel browser-demo consumption state by a unique per-link identifier rather than the constant `browser-demo` slug.
 - [x] Redeploy and re-test a fresh browser-demo link: first opening must decrypt locally, then the same browser must show the local consumed message on second opening.
+
+- [x] Replace the broken SecureDrop header image reference with a reliable inline brand mark.
+- [ ] Verify the fixed brand mark at desktop and mobile Vercel widths.
+- [ ] Deploy the inline SecureDrop brand-mark fix to Vercel and verify the live header at desktop width.
+- [ ] Verify the live Vercel mobile header and navigation show the inline brand mark without a broken-image placeholder.

@@ -37,7 +37,6 @@ import {
 
 const heroImage = "/manus-storage/securedrop-hero_7ac0ced3.png";
 const paperImage = "/manus-storage/securedrop-paper-study_e8e91531.png";
-const markImage = "/manus-storage/securedrop-mark_aa6aee5e.png";
 
 const recentDrops = [
   { title: "Launch handoff notes", meta: "Opened 8 min ago", tag: "TEAM", tone: "coral" },
@@ -140,7 +139,7 @@ export default function Home() {
       <aside className={`utility-rail ${mobileNav ? "is-open" : ""}`}>
         <div className="rail-top">
           <div className="brand-lockup">
-            <img src={markImage} alt="" className="brand-mark" />
+            <span className="brand-mark" aria-hidden="true"><ShieldCheck size={15} strokeWidth={2.4} /></span>
             <span className="brand-name"><span className="brand-word">secure</span><span>drop</span></span>
           </div>
           <button className="icon-button rail-close" aria-label="Close navigation" onClick={() => setMobileNav(false)}><X size={18} /></button>
