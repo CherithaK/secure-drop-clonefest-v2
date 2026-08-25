@@ -4,6 +4,7 @@ import { Copy, KeyRound, QrCode, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { decryptFromShare, fragmentKeyFromLocation } from "@/lib/fragmentCrypto";
+import { browserDemoConsumptionKey, browserDemoPayloadFromLocation, isDatabaseFreeVercelDemo } from "@/lib/browserDemo";
 
 export default function Drop() {
   const [, params] = useRoute("/drop/:slug");
@@ -13,12 +14,25 @@ export default function Drop() {
   const [lifecycle, setLifecycle] = useState<"EXPIRED" | "REVOKED" | "DESTROYED" | "LOCKED" | null>(null);
   const access = trpc.drops.access.useMutation();
   const slug = params?.slug || "";
+  const browserDemo = isDatabaseFreeVercelDemo();
+  const localPayload = browserDemo ? browserDemoPayloadFromLocation() : null;
   const shareUrl = typeof window === "undefined" ? `https://securedrop.local/drop/${slug}` : window.location.href;
 
   async function unlock() {
     try {
       const fragmentKey = fragmentKeyFromLocation();
       if (!fragmentKey) throw new Error("This link is missing its browser-only decryption key.");
+      if (browserDemo) {
+        if (!localPayload) throw new Error("This browser demo link is missing its encrypted payload.");
+        if (Date.now() > localPayload.expiresAt) { setLifecycle("EXPIRED"); return; }
+        if (localPayload.burnAfterReading && sessionStorage.getItem(browserDemoConsumptionKey(slug))) { setLifecycle("DESTROYED"); return; }
+        const plaintext = await decryptFromShare({ ciphertext: localPayload.ciphertext, iv: localPayload.iv, authTag: localPayload.authTag, fragmentKey });
+        setSecret(plaintext);
+        setDestroyedAfterView(localPayload.burnAfterReading);
+        if (localPayload.burnAfterReading) sessionStorage.setItem(browserDemoConsumptionKey(slug), "1");
+        toast.success(localPayload.burnAfterReading ? "Revealed and locally marked consumed" : "Self-contained demo decrypted locally");
+        return;
+      }
       const result = await access.mutateAsync({ slug, passphrase: passphrase || undefined });
       const plaintext = await decryptFromShare({ ciphertext: result.ciphertext, iv: result.iv, authTag: result.authTag, fragmentKey });
       setSecret(plaintext);
@@ -46,10 +60,10 @@ export default function Drop() {
         {secret ? (
           <>
             <h1>Decrypted for you.</h1>
-            <p className="drop-lead">This content was decrypted locally in this browser. The server only ever handled ciphertext; the decryption key stays in this link fragment.</p>
+            <p className="drop-lead">{browserDemo ? "This Vercel contest demo decrypted ciphertext locally from the URL fragment. No database or server storage was involved." : "This content was decrypted locally in this browser. The server only ever handled ciphertext; the decryption key stays in this link fragment."}</p>
             <div className="secret-reveal"><pre>{secret}</pre><button onClick={copy}><Copy size={16} /> Copy secret</button></div>
-            {destroyedAfterView && <div className="drop-safe-note"><ShieldCheck size={15} /> This was the permitted reveal. The encrypted payload has now been destroyed.</div>}
-            <div className="qr-card"><div><QrCode size={22} /><strong>Continue on mobile</strong><span>Scan to open this same boundary on another device.</span></div><img alt="QR code for this secure drop" src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&color=10242b&bgcolor=f4f0e8&data=${encodeURIComponent(shareUrl)}`} /></div>
+            {destroyedAfterView && <div className="drop-safe-note"><ShieldCheck size={15} /> {browserDemo ? "This browser has marked the demo link consumed. Without a server, another browser can still open the self-contained link." : "This was the permitted reveal. The encrypted payload has now been destroyed."}</div>}
+            {!browserDemo && <div className="qr-card"><div><QrCode size={22} /><strong>Continue on mobile</strong><span>Scan to open this same boundary on another device.</span></div><img alt="QR code for this secure drop" src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&color=10242b&bgcolor=f4f0e8&data=${encodeURIComponent(shareUrl)}`} /></div>}
           </>
         ) : lifecycle ? (
           <>
@@ -60,10 +74,10 @@ export default function Drop() {
           </>
         ) : (
           <>
-            <h1>Someone shared a boundary with you.</h1>
-            <p className="drop-lead">This drop is protected. Authenticate to reveal the secret; nothing is returned before the passphrase is accepted.</p>
-            <div className="auth-box"><label><KeyRound size={16} /> Passphrase</label><input type="password" value={passphrase} onChange={(e) => setPassphrase(e.target.value)} onKeyDown={(e) => e.key === "Enter" && unlock()} placeholder="Enter the passphrase" autoFocus /><button className="publish-button" onClick={unlock} disabled={access.isPending}><span>{access.isPending ? "Checking boundary…" : "Unlock secret"}</span><ShieldCheck size={17} /></button></div>
-            <div className="drop-safe-note"><ShieldCheck size={15} /> Zero plaintext is returned until authentication succeeds.</div>
+            <h1>{browserDemo ? "Open the self-contained demo." : "Someone shared a boundary with you."}</h1>
+            <p className="drop-lead">{browserDemo ? "This Vercel contest link contains ciphertext and a browser-only key in its URL fragment. It demonstrates local AES-GCM decryption only; it is not a durable secure-storage service." : "This drop is protected. Authenticate to reveal the secret; nothing is returned before the passphrase is accepted."}</p>
+            {browserDemo ? <div className="auth-box"><button className="publish-button" onClick={unlock}><span>Decrypt local demo</span><ShieldCheck size={17} /></button></div> : <div className="auth-box"><label><KeyRound size={16} /> Passphrase</label><input type="password" value={passphrase} onChange={(e) => setPassphrase(e.target.value)} onKeyDown={(e) => e.key === "Enter" && unlock()} placeholder="Enter the passphrase" autoFocus /><button className="publish-button" onClick={unlock} disabled={access.isPending}><span>{access.isPending ? "Checking boundary…" : "Unlock secret"}</span><ShieldCheck size={17} /></button></div>}
+            <div className="drop-safe-note"><ShieldCheck size={15} /> {browserDemo ? "No database, global revoke, audit log, or cross-browser one-time guarantee is present in this contest demo." : "Zero plaintext is returned until authentication succeeds."}</div>
           </>
         )}
       </div>

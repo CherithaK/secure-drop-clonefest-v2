@@ -72,3 +72,6 @@
 - [ ] Verify recipient decryption, destruction-after-view, and dashboard audit behavior on the Vercel URL after a successful production write.
 - [x] Surface only the non-sensitive TiDB driver error code in the failed create response to complete production connection diagnosis.
 - [ ] Preserve HTTPS in Vercel share URLs by honoring the proxy-forwarded protocol header.
+- [ ] Replace the Vercel database dependency with a transparent database-free contest demo flow.
+- [ ] Clearly disclose that the database-free Vercel demo uses local browser state and does not provide durable recipient access, owner history, revocation, or audit persistence.
+- [ ] Verify the database-free Vercel demo creates, decrypts locally, and presents its one-time lifecycle honestly.
