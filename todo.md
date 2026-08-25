@@ -32,10 +32,10 @@
 - [x] Add a persistent dark mode toggle with accessible labels and system-friendly theme behavior.
 - [x] Add Vercel deployment configuration and document required compatibility/environment steps.
 - [x] Validate dark mode, build output, and Vercel configuration, then save a checkpoint.
-- [ ] Deploy the prepared SecureDrop checkpoint to Vercel without changing Manus hosting.
+- [x] Deploy the prepared SecureDrop checkpoint to Vercel without changing Manus hosting.
 - [ ] Verify the Vercel deployment URL and identify any missing production secrets, database, OAuth, or cron configuration.
 - [x] Fix Vercel deployment 404 so the root route serves the SecureDrop frontend.
-- [ ] Verify Vercel API routing and redeploy the corrected configuration.
+- [x] Verify Vercel API routing and redeploy the corrected configuration.
 - [x] Make the Protection default control focus and enable passphrase settings in the composer.
 - [x] Make the Expiry rules default control focus the expiry selector in the composer.
 - [x] Add visible feedback for both defaults actions and verify the interactions in the browser.
@@ -62,6 +62,7 @@
 - [x] Verify in the browser with an actually expired drop that the dashboard audit timeline renders an EXPIRED event.
 - [x] Strengthen the expiry transition test to assert the inserted audit payload records the same slug, owner session, and kind EXPIRED.
 - [x] Save a reviewable checkpoint containing the browser-side encryption, audit timeline, safe demo, expiry verification, and README upgrade.
-- [ ] Diagnose and resolve the Vercel serverless API crash for the required contest submission URL.
-- [ ] Redeploy the latest `42943bc` security upgrade to the Vercel submission project.
+- [x] Diagnose and resolve the Vercel serverless API crash for the required contest submission URL.
+- [x] Redeploy the latest `42943bc` security upgrade to the Vercel submission project.
 - [ ] Verify the Vercel create, recipient decrypt, lifecycle, and safe-demo paths using the production URL.
+- [x] Add safe server-side logging for the Vercel TiDB insert failure and replace raw database errors in the public create-drop response.

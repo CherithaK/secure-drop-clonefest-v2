@@ -91,6 +91,16 @@ var ENV = {
 
 // server/db.ts
 var _db = null;
+function databaseErrorMetadata(error) {
+  const record = error && typeof error === "object" ? error : {};
+  const cause = record.cause && typeof record.cause === "object" ? record.cause : record;
+  return {
+    code: typeof cause.code === "string" || typeof cause.code === "number" ? cause.code : null,
+    errno: typeof cause.errno === "number" ? cause.errno : null,
+    sqlState: typeof cause.sqlState === "string" ? cause.sqlState : null,
+    name: typeof cause.name === "string" ? cause.name : "DatabaseError"
+  };
+}
 async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -117,9 +127,14 @@ async function getUserByOpenId(openId) {
 async function insertDrop(input) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
-  await db.insert(secureDrops).values(input);
-  const rows = await db.select().from(secureDrops).where(eq(secureDrops.slug, input.slug)).limit(1);
-  return rows[0];
+  try {
+    await db.insert(secureDrops).values(input);
+    const rows = await db.select().from(secureDrops).where(eq(secureDrops.slug, input.slug)).limit(1);
+    return rows[0];
+  } catch (error) {
+    console.error("[SecureDrop] Drop insert failed", databaseErrorMetadata(error));
+    throw error;
+  }
 }
 async function listDropsForSession(ownerSessionHash) {
   const db = await getDb();
@@ -708,8 +723,13 @@ var appRouter = router({
       const ownerSessionHash = sessionHash(creatorSession);
       const slug = nanoid(10);
       const expiresAt = new Date(Date.now() + input.expirationMinutes * 6e4);
-      const row = await insertDrop({ slug, ownerSessionHash, title: input.title || "Untitled drop", ciphertext: input.ciphertext, iv: input.iv, authTag: input.authTag, passphraseHash: input.passphrase ? hashPassphrase(input.passphrase) : null, status: "ACTIVE", burnAfterReading: input.burnAfterReading ? 1 : 0, viewLimit: input.viewLimit, viewCount: 0, failedAttempts: 0, lockedUntil: null, expiresAt });
-      await logDropEvent(ownerSessionHash, slug, "CREATED");
+      let row;
+      try {
+        row = await insertDrop({ slug, ownerSessionHash, title: input.title || "Untitled drop", ciphertext: input.ciphertext, iv: input.iv, authTag: input.authTag, passphraseHash: input.passphrase ? hashPassphrase(input.passphrase) : null, status: "ACTIVE", burnAfterReading: input.burnAfterReading ? 1 : 0, viewLimit: input.viewLimit, viewCount: 0, failedAttempts: 0, lockedUntil: null, expiresAt });
+        await logDropEvent(ownerSessionHash, slug, "CREATED");
+      } catch {
+        throw new TRPCError3({ code: "INTERNAL_SERVER_ERROR", message: "SecureDrop could not save this drop. Please retry shortly." });
+      }
       attachCreatorCookie(ctx.res, creatorSession);
       return { slug: row.slug, title: row.title, expiresAt: row.expiresAt, viewLimit: row.viewLimit, burnAfterReading: Boolean(row.burnAfterReading), protected: Boolean(row.passphraseHash), url: makeShareUrl(ctx.req, slug) };
     }),

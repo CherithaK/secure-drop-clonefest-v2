@@ -21,8 +21,13 @@ export const appRouter = router({
       const creatorSession = getCreatorSession(ctx.req) ?? newCreatorSession(); const ownerSessionHash = sessionHash(creatorSession);
       const slug = nanoid(10);
       const expiresAt = new Date(Date.now() + input.expirationMinutes * 60_000);
-      const row = await insertDrop({ slug, ownerSessionHash, title: input.title || "Untitled drop", ciphertext: input.ciphertext, iv: input.iv, authTag: input.authTag, passphraseHash: input.passphrase ? hashPassphrase(input.passphrase) : null, status: "ACTIVE", burnAfterReading: input.burnAfterReading ? 1 : 0, viewLimit: input.viewLimit, viewCount: 0, failedAttempts: 0, lockedUntil: null, expiresAt });
-      await logDropEvent(ownerSessionHash, slug, "CREATED");
+      let row;
+      try {
+        row = await insertDrop({ slug, ownerSessionHash, title: input.title || "Untitled drop", ciphertext: input.ciphertext, iv: input.iv, authTag: input.authTag, passphraseHash: input.passphrase ? hashPassphrase(input.passphrase) : null, status: "ACTIVE", burnAfterReading: input.burnAfterReading ? 1 : 0, viewLimit: input.viewLimit, viewCount: 0, failedAttempts: 0, lockedUntil: null, expiresAt });
+        await logDropEvent(ownerSessionHash, slug, "CREATED");
+      } catch {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "SecureDrop could not save this drop. Please retry shortly." });
+      }
       attachCreatorCookie(ctx.res, creatorSession);
       return { slug: row!.slug, title: row!.title, expiresAt: row!.expiresAt, viewLimit: row!.viewLimit, burnAfterReading: Boolean(row!.burnAfterReading), protected: Boolean(row!.passphraseHash), url: makeShareUrl(ctx.req, slug) };
     }),

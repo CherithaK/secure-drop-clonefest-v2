@@ -8,4 +8,10 @@ describe("Vercel serverless adapter", () => {
     expect(typeof app).toBe("function");
     expect(app).toHaveProperty("use");
   });
+
+  it("uses a callable request handler as the serverless entrypoint", () => {
+    const handler = createVercelApp();
+
+    expect(handler.length).toBeGreaterThanOrEqual(2);
+  });
 });
