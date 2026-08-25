@@ -18,6 +18,13 @@ function databaseErrorMetadata(error: unknown) {
   };
 }
 
+export function databaseDiagnosticCode(error: unknown) {
+  const code = databaseErrorMetadata(error).code;
+  const normalized = code === null ? "" : String(code).toUpperCase();
+
+  return /^[A-Z0-9_]{2,64}$/.test(normalized) ? normalized : "WRITE_FAILED";
+}
+
 export function createTiDbCloudPool(databaseUrl: string) {
   const url = new URL(databaseUrl);
 

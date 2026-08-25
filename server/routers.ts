@@ -6,7 +6,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { attachCreatorCookie, getCreatorSession, hashPassphrase, makeShareUrl, newCreatorSession, sessionHash, verifyPassphrase } from "./dropCrypto";
-import { clearWrongAttempts, getDrop, incrementView, insertDrop, listDropEvents, listDropsForSession, logDropEvent, markExpired, reconcileExpiredForSession, registerWrongAttempt, revokeDrop } from "./db";
+import { clearWrongAttempts, databaseDiagnosticCode, getDrop, incrementView, insertDrop, listDropEvents, listDropsForSession, logDropEvent, markExpired, reconcileExpiredForSession, registerWrongAttempt, revokeDrop } from "./db";
 
 const createInput = z.object({ title: z.string().trim().max(160).optional(), ciphertext: z.string().min(1).max(250000), iv: z.string().min(8).max(64), authTag: z.string().min(8).max(64), expirationMinutes: z.number().int().min(1).max(525600), viewLimit: z.number().int().min(1).max(100).default(1), passphrase: z.string().min(8).max(200).optional(), burnAfterReading: z.boolean().default(false) });
 
@@ -25,8 +25,8 @@ export const appRouter = router({
       try {
         row = await insertDrop({ slug, ownerSessionHash, title: input.title || "Untitled drop", ciphertext: input.ciphertext, iv: input.iv, authTag: input.authTag, passphraseHash: input.passphrase ? hashPassphrase(input.passphrase) : null, status: "ACTIVE", burnAfterReading: input.burnAfterReading ? 1 : 0, viewLimit: input.viewLimit, viewCount: 0, failedAttempts: 0, lockedUntil: null, expiresAt });
         await logDropEvent(ownerSessionHash, slug, "CREATED");
-      } catch {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "SecureDrop could not save this drop. Please retry shortly." });
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `SecureDrop could not save this drop. Please retry shortly. Diagnostic: ${databaseDiagnosticCode(error)}` });
       }
       attachCreatorCookie(ctx.res, creatorSession);
       return { slug: row!.slug, title: row!.title, expiresAt: row!.expiresAt, viewLimit: row!.viewLimit, burnAfterReading: Boolean(row!.burnAfterReading), protected: Boolean(row!.passphraseHash), url: makeShareUrl(ctx.req, slug) };

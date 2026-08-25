@@ -102,6 +102,11 @@ function databaseErrorMetadata(error) {
     name: typeof cause.name === "string" ? cause.name : "DatabaseError"
   };
 }
+function databaseDiagnosticCode(error) {
+  const code = databaseErrorMetadata(error).code;
+  const normalized = code === null ? "" : String(code).toUpperCase();
+  return /^[A-Z0-9_]{2,64}$/.test(normalized) ? normalized : "WRITE_FAILED";
+}
 function createTiDbCloudPool(databaseUrl) {
   const url = new URL(databaseUrl);
   return mysql.createPool({
@@ -741,8 +746,8 @@ var appRouter = router({
       try {
         row = await insertDrop({ slug, ownerSessionHash, title: input.title || "Untitled drop", ciphertext: input.ciphertext, iv: input.iv, authTag: input.authTag, passphraseHash: input.passphrase ? hashPassphrase(input.passphrase) : null, status: "ACTIVE", burnAfterReading: input.burnAfterReading ? 1 : 0, viewLimit: input.viewLimit, viewCount: 0, failedAttempts: 0, lockedUntil: null, expiresAt });
         await logDropEvent(ownerSessionHash, slug, "CREATED");
-      } catch {
-        throw new TRPCError3({ code: "INTERNAL_SERVER_ERROR", message: "SecureDrop could not save this drop. Please retry shortly." });
+      } catch (error) {
+        throw new TRPCError3({ code: "INTERNAL_SERVER_ERROR", message: `SecureDrop could not save this drop. Please retry shortly. Diagnostic: ${databaseDiagnosticCode(error)}` });
       }
       attachCreatorCookie(ctx.res, creatorSession);
       return { slug: row.slug, title: row.title, expiresAt: row.expiresAt, viewLimit: row.viewLimit, burnAfterReading: Boolean(row.burnAfterReading), protected: Boolean(row.passphraseHash), url: makeShareUrl(ctx.req, slug) };

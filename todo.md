@@ -70,3 +70,4 @@
 - [ ] Redeploy the TiDB TLS connection update to the Vercel submission project and confirm the live deployment uses the new commit.
 - [ ] Re-run the Vercel safe demo create flow and verify the production write succeeds without database errors.
 - [ ] Verify recipient decryption, destruction-after-view, and dashboard audit behavior on the Vercel URL after a successful production write.
+- [x] Surface only the non-sensitive TiDB driver error code in the failed create response to complete production connection diagnosis.
