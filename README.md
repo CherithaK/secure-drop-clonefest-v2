@@ -4,7 +4,7 @@
 
 SecureDrop is a modern, privacy-first platform for sharing sensitive text without turning it into a permanent chat message, inbox artifact, or document. It preserves the essential purpose of PrivateBin, controlled, temporary information sharing, while rethinking the experience around explicit boundaries, clear lifecycle states, and a calm editorial interface.
 
-This repository is the CloneFest 2.0 submission for the **Legacy Modernisation: PrivateBin** challenge. The implementation is intentionally independent rather than a visual clone: it combines a tactile “Paper Trail” product language with real server-side persistence, authenticated decryption, revocation, destruction, session history, and scheduled cleanup.
+This repository is the CloneFest 2.0 submission for the **Legacy Modernisation: PrivateBin** challenge. The implementation is intentionally independent rather than a visual clone: it combines a tactile “Paper Trail” product language with a full server-backed SecureDrop product and a separately disclosed, database-free Vercel contest demonstration.
 
 ## Product highlights
 
@@ -18,6 +18,17 @@ This repository is the CloneFest 2.0 submission for the **Legacy Modernisation: 
 | Sharing UX | Provides copy-to-clipboard feedback and a high-contrast QR code generated through a zero-dependency QR image endpoint. |
 | Collections | Provides a functional workspace for creating local organizational collections without weakening each drop’s individual security boundary. |
 | Operations | Includes a cron-authenticated cleanup endpoint and a registered nightly heartbeat for removing expired, revoked, and destroyed rows. |
+
+## Deployment modes
+
+SecureDrop intentionally exposes two different operating modes. The managed application is the complete product implementation. The Vercel submission URL is a **database-free contest demonstration** so it remains reliable without third-party database credentials.
+
+| Deployment | Data location | What is enforced | What is intentionally unavailable |
+| --- | --- | --- | --- |
+| Managed server-backed deployment | Encrypted payload in MySQL/TiDB; key only in the URL fragment | Passphrase verification, view budgets, expiry, owner revocation, audit events, and cleanup | Cross-device creator history without an optional account |
+| Vercel contest demo | Ciphertext, IV, tag, and AES-GCM key in the URL fragment; no database write | Browser-local AES-GCM decryption, fragment-only transport, expiry display, and browser-local consumed marker | Durable recipient access, passphrase verification, global one-time enforcement, owner history, revocation, audit logs, and scheduled cleanup |
+
+> **Important:** The Vercel mode is a transparent demonstration of browser-side encryption and local reveal. It is not a substitute for the full server-backed lifecycle model and should only be used with the clearly labeled fictional demo content.
 
 ## Why this is a modernization
 
@@ -46,6 +57,11 @@ Browser
 Scheduled heartbeat
   └── POST /api/scheduled/cleanup
           └── Deletes expired, revoked, and destroyed rows
+
+Vercel contest demonstration
+  └── React + Web Crypto
+          └── Ciphertext + AES-GCM key stay in `#` URL fragment
+                  └── Recipient decrypts locally; no database request
 ```
 
 ### Repository map
@@ -56,6 +72,7 @@ Scheduled heartbeat
 | `client/src/pages/Dashboard.tsx` | Session-scoped dashboard with search, filters, statuses, copy, revocation, and metadata-only audit trail. |
 | `client/src/pages/Drop.tsx` | Recipient authentication, browser-side decryption, lifecycle outcomes, copy, and QR sharing. |
 | `client/src/lib/fragmentCrypto.ts` | Browser Web Crypto helpers for random AES-GCM keys, ciphertext, and URL-fragment key handling. |
+| `client/src/lib/browserDemo.ts` | Vercel-only self-contained contest-link format, fragment payload handling, and browser-local consumption marker. |
 | `client/src/pages/Collections.tsx` | Collection workspace and collection creation flow. |
 | `client/src/App.tsx` | Route registration for `/`, `/dashboard`, `/collections`, and `/drop/:slug`. |
 | `client/src/index.css` | Paper Trail design system, responsive layout, states, and motion. |
@@ -74,6 +91,12 @@ Scheduled heartbeat
 The browser creates a random 256-bit AES-GCM key for every new drop, encrypts the note locally, and sends only `ciphertext`, `iv`, and `authTag` to the server. The decryption key is encoded only in the URL fragment as `#k=…`; fragments are not included in HTTP requests. The `secure_drops` row does not store plaintext or a decryption key, and dashboard procedures return metadata only.
 
 The access procedure validates lifecycle state and, when configured, verifies the passphrase before returning the encrypted payload. The recipient page then decrypts it locally with the fragment key. A rejected request returns a lifecycle or authentication error, never plaintext; the server has no capability to decrypt the payload.
+
+### Database-free Vercel contest demonstration
+
+On `*.vercel.app`, SecureDrop detects contest-demo mode and does **not** call the database-backed create, access, dashboard, revoke, or audit APIs. Instead, the browser encrypts the fictional note with a fresh AES-GCM key and puts the ciphertext, IV, authentication tag, and decryption key in the URL fragment. URL fragments are handled client-side and are not included in HTTP requests.[7] The recipient page parses that fragment and performs AES-GCM decryption locally.
+
+The trade-off is explicit in the interface and is fundamental: anyone who has the complete link has the encrypted payload and its decryption key. A browser-local `sessionStorage` marker can present a consumed state after reveal in that browser, but it cannot enforce a global one-time reveal, revoke a copied link, retain an audit trail, or provide server-side passphrase throttling. The Vercel demo therefore limits note size to 1,200 characters and uses only fictional content.
 
 ### Passphrase protection
 
@@ -114,7 +137,9 @@ The schema includes indexes for owner-session lookup and lifecycle pruning.
 
 ## Contest demo mode
 
-The composer includes a **Load safe demo scenario** action. It fills the form with clearly labeled fictional handoff text, a burn-after-reading boundary, one permitted view, and the visible passphrase `demo-boundary`. The data does not include credentials, customer information, or live service links. Use it to demonstrate creation, fragment-key sharing, recipient authentication, local decryption, destruction, and the owner audit trail in a reliable sequence.
+The composer includes a **Load safe demo scenario** action. It fills the form with clearly labeled fictional handoff text and never includes credentials, customer information, or live service links.
+
+On the full server-backed deployment, the scenario uses a burn-after-reading boundary, one permitted view, and the visible passphrase `demo-boundary`; it can demonstrate the complete create → authenticate → decrypt → destroy → audit flow. On the Vercel submission, the same safe scenario creates a self-contained encrypted URL and demonstrates creation plus local decryption while visibly disclosing that one-time state is local to the browser and no audit history exists.
 
 ## Local development
 
@@ -172,7 +197,7 @@ pnpm test -- --runInBand
 pnpm build
 ```
 
-The current test suite covers authenticated logout behavior plus cryptographic round trips, passphrase verification, and deterministic session hashing. Browser verification should cover:
+The current test suite covers authenticated logout behavior plus cryptographic round trips, self-contained browser-demo URL encoding, passphrase verification, and deterministic session hashing. Browser verification should cover the appropriate mode:
 
 1. Create a protected drop with a custom expiry and view limit.
 2. Copy the link and open it at `/drop/:slug`.
@@ -182,6 +207,8 @@ The current test suite covers authenticated logout behavior plus cryptographic r
 6. Open `/dashboard`, filter by lifecycle status, copy a link, and revoke an active drop.
 7. Open `/collections`, create a collection, and confirm the empty state transitions to a collection card.
 8. Confirm `/api/scheduled/cleanup` is protected by the cron authentication layer.
+
+For the database-free Vercel contest demo, use **Load safe demo scenario**, create the self-contained link, open `/drop/browser-demo` with the generated fragment, decrypt locally, and confirm the browser-local consumed disclosure after reveal. Do not test it with real secrets.
 
 ## Production operations
 
@@ -208,9 +235,17 @@ A strong five-minute walkthrough is:
 
 Never use real credentials, API keys, customer data, or production secrets during the presentation.
 
+### Vercel submission walkthrough
+
+1. Open `https://secure-drop-clonefest-v3.vercel.app/` and point out the **Vercel contest demo** notice.
+2. Select **Load safe demo scenario**. Explain that the content is fictional and that the Vercel mode performs no database write.
+3. Create the drop and show the generated `#k=…&d=…` URL. Explain that the fragment carries ciphertext and the browser-only AES-GCM key; it is not sent as an HTTP request.[7]
+4. Open the generated link, choose **Decrypt local demo**, and show the fictional plaintext reveal.
+5. Explain the visible limitation statement: the consumed marker is local to this browser, while global one-time rules, revocation, passphrase protection, and audit history need the server-backed deployment.
+
 ## Known trade-offs and next extensions
 
-The current creator dashboard is intentionally browser-session scoped. Clearing cookies removes local history while leaving recipient links valid. Collections are currently a polished local workspace and are ready for database persistence in a follow-up iteration. The next high-value additions would be database-backed collections, optional passwordless account linking for cross-device history, and deeper disposable-database integration tests for every lifecycle transition.
+The full creator dashboard is intentionally browser-session scoped. Clearing cookies removes local history while leaving recipient links valid. Collections are currently a polished local workspace and are ready for database persistence in a follow-up iteration. The Vercel contest demo is deliberately more constrained: it has no database, durable recipient payload, global one-time state, passphrase verifier, owner ledger, audit, or revocation. The next high-value additions are database-backed collections, optional passwordless account linking for cross-device history, and deeper disposable-database integration tests for every lifecycle transition.
 
 ## License and attribution
 
@@ -224,6 +259,7 @@ SecureDrop is an independent modernization project for the CloneFest 2.0 challen
 [4]: https://nodejs.org/api/crypto.html "Node.js Crypto documentation"
 [5]: https://vitest.dev/guide/ "Vitest documentation"
 [6]: https://github.com/PrivateBin/PrivateBin "PrivateBin reference repository"
+[7]: https://developer.mozilla.org/en-US/docs/Web/API/URL/hash "MDN URL hash documentation"
 
 ## Dark mode
 
@@ -231,7 +267,7 @@ The application includes a persistent dark-mode toggle in the Home header. It us
 
 ## Vercel deployment
 
-This repository includes a `vercel.json` configuration and a Vercel serverless entrypoint for teams that prefer Vercel. The frontend is built with the existing `pnpm build` command into `dist/public`. That same build bundles the Express/tRPC server into `api/index.js`, so the Vercel runtime does not need to resolve the repository's internal TypeScript modules at invocation time. All `/api/*` requests are routed to this self-contained function.
+This repository includes a `vercel.json` configuration and a Vercel serverless entrypoint. The frontend is built with `pnpm build` into `dist/public`. That build also bundles the Express/tRPC server into `api/index.js`, so the Vercel runtime does not need to resolve internal TypeScript modules at invocation time. The public contest URL uses the database-free client-side flow documented above and therefore does not depend on an external MySQL/TiDB credential.
 
 > Manus WebDev remains the supported primary deployment because it already provides the managed database, secrets, OAuth, custom domain, and heartbeat infrastructure. Vercel is an optional export path and may require additional platform configuration for MySQL/TiDB networking, OAuth callback URLs, secure cookies, and scheduled jobs.
 
@@ -239,10 +275,8 @@ This repository includes a `vercel.json` configuration and a Vercel serverless e
 
 1. Import the repository into Vercel and select the branch containing the finished SecureDrop implementation.
 2. Keep the framework preset as **Other** or let the committed `vercel.json` provide the build settings.
-3. Configure the production environment variables from the environment table above, including `DATABASE_URL`, `JWT_SECRET`, `VITE_APP_ID`, `OAUTH_SERVER_URL`, and `VITE_OAUTH_PORTAL_URL`.
-4. Update the OAuth provider’s callback URL to the Vercel deployment origin plus `/api/oauth/callback`.
-5. Confirm that the Vercel project can reach the configured MySQL/TiDB instance over TLS and that its firewall allows Vercel egress.
-6. Configure a Vercel Cron or external scheduler to `POST /api/scheduled/cleanup`. The endpoint still requires the platform heartbeat authentication contract; if Vercel Cron is used instead, adapt the route to a Vercel-specific secret header before enabling destructive cleanup.
-7. Test a complete create → access → burn-after-reading → revoke flow against the Vercel URL before using it with real data.
+3. For the **database-free contest submission**, no `DATABASE_URL` is required. Use only the safe fictional demo content and present the limitations stated in the interface and this README.
+4. For a future **full server-backed Vercel deployment**, configure `DATABASE_URL`, `JWT_SECRET`, `VITE_APP_ID`, `OAUTH_SERVER_URL`, and `VITE_OAUTH_PORTAL_URL`; update the OAuth callback URL; permit Vercel-to-database TLS; and adapt scheduled cleanup to a Vercel-specific secret before enabling it.
+5. Do not describe the database-free URL as a production secure-storage service. Test the self-contained create → local decrypt walkthrough before submitting it.
 
 The Vercel adapter is intentionally isolated in `server/vercel.ts`, and `scripts/vercel-entry.ts` is the dedicated bundle entrypoint, so the existing Manus Express server and scheduled heartbeat remain unchanged. Do not commit production secrets, and do not treat a successful frontend build as proof that database connectivity, OAuth, or scheduled cleanup are configured correctly.

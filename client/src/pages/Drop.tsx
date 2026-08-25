@@ -68,9 +68,9 @@ export default function Drop() {
         ) : lifecycle ? (
           <>
             <div className="lifecycle-mark"><ShieldCheck size={22} /></div>
-            <h1>{lifecycle === "LOCKED" ? "Boundary temporarily sealed." : lifecycle === "EXPIRED" ? "This drop has expired." : lifecycle === "REVOKED" ? "This drop was revoked." : "This drop was destroyed."}</h1>
-            <p className="drop-lead">{lifecycle === "LOCKED" ? "Five incorrect passphrases paused access for 15 minutes. Try again later." : lifecycle === "EXPIRED" ? "The creator’s expiry window has closed, so this link can no longer reveal content." : lifecycle === "REVOKED" ? "The creator revoked this link and its ciphertext was deleted instantly." : "This drop has already been viewed or destroyed, so no plaintext remains to reveal."}</p>
-            <div className="drop-safe-note"><ShieldCheck size={15} /> No plaintext was returned. The ciphertext remains protected.</div>
+            <h1>{browserDemo && lifecycle === "DESTROYED" ? "This browser already opened the demo." : lifecycle === "LOCKED" ? "Boundary temporarily sealed." : lifecycle === "EXPIRED" ? "This drop has expired." : lifecycle === "REVOKED" ? "This drop was revoked." : "This drop was destroyed."}</h1>
+            <p className="drop-lead">{browserDemo && lifecycle === "DESTROYED" ? "This browser’s local consumed marker prevents a second reveal. Because this is a self-contained link, another browser that receives the full link can still decrypt it." : lifecycle === "LOCKED" ? "Five incorrect passphrases paused access for 15 minutes. Try again later." : lifecycle === "EXPIRED" ? "The creator’s expiry window has closed, so this link can no longer reveal content." : lifecycle === "REVOKED" ? "The creator revoked this link and its ciphertext was deleted instantly." : "This drop has already been viewed or destroyed, so no plaintext remains to reveal."}</p>
+            <div className="drop-safe-note"><ShieldCheck size={15} /> {browserDemo ? "No second plaintext was shown in this browser. The ciphertext remains in the copied URL fragment by design." : "No plaintext was returned. The ciphertext remains protected."}</div>
           </>
         ) : (
           <>

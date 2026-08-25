@@ -33,7 +33,7 @@
 - [x] Add Vercel deployment configuration and document required compatibility/environment steps.
 - [x] Validate dark mode, build output, and Vercel configuration, then save a checkpoint.
 - [x] Deploy the prepared SecureDrop checkpoint to Vercel without changing Manus hosting.
-- [ ] Verify the Vercel deployment URL and identify any missing production secrets, database, OAuth, or cron configuration.
+- [x] Verify the Vercel deployment URL and identify any missing production secrets, database, OAuth, or cron configuration. Superseded for the database-free contest demo.
 - [x] Fix Vercel deployment 404 so the root route serves the SecureDrop frontend.
 - [x] Verify Vercel API routing and redeploy the corrected configuration.
 - [x] Make the Protection default control focus and enable passphrase settings in the composer.
@@ -64,14 +64,17 @@
 - [x] Save a reviewable checkpoint containing the browser-side encryption, audit timeline, safe demo, expiry verification, and README upgrade.
 - [x] Diagnose and resolve the Vercel serverless API crash for the required contest submission URL.
 - [x] Redeploy the latest `42943bc` security upgrade to the Vercel submission project.
-- [ ] Verify the Vercel create, recipient decrypt, lifecycle, and safe-demo paths using the production URL.
+- [x] Verify the Vercel create, recipient decrypt, lifecycle, and safe-demo paths using the production URL. Superseded by the database-free demo verification below.
 - [x] Add safe server-side logging for the Vercel TiDB insert failure and replace raw database errors in the public create-drop response.
-- [ ] Configure an explicit certificate-verified TiDB Cloud MySQL connection for the Vercel runtime and retest production writes.
-- [ ] Redeploy the TiDB TLS connection update to the Vercel submission project and confirm the live deployment uses the new commit.
-- [ ] Re-run the Vercel safe demo create flow and verify the production write succeeds without database errors.
-- [ ] Verify recipient decryption, destruction-after-view, and dashboard audit behavior on the Vercel URL after a successful production write.
+- [x] Configure an explicit certificate-verified TiDB Cloud MySQL connection for the Vercel runtime and retest production writes. Superseded: the contest submission no longer uses TiDB.
+- [x] Redeploy the TiDB TLS connection update to the Vercel submission project and confirm the live deployment uses the new commit. Superseded: the contest submission no longer uses TiDB.
+- [x] Re-run the Vercel safe demo create flow and verify the production write succeeds without database errors. Superseded: the contest submission makes no database write.
+- [x] Verify recipient decryption, destruction-after-view, and dashboard audit behavior on the Vercel URL after a successful production write. Superseded: durable lifecycle and audit behavior are explicitly unavailable in the contest demo.
 - [x] Surface only the non-sensitive TiDB driver error code in the failed create response to complete production connection diagnosis.
-- [ ] Preserve HTTPS in Vercel share URLs by honoring the proxy-forwarded protocol header.
-- [ ] Replace the Vercel database dependency with a transparent database-free contest demo flow.
-- [ ] Clearly disclose that the database-free Vercel demo uses local browser state and does not provide durable recipient access, owner history, revocation, or audit persistence.
-- [ ] Verify the database-free Vercel demo creates, decrypts locally, and presents its one-time lifecycle honestly.
+- [x] Preserve HTTPS in Vercel share URLs by honoring the proxy-forwarded protocol header.
+- [x] Replace the Vercel database dependency with a transparent database-free contest demo flow.
+- [x] Clearly disclose that the database-free Vercel demo uses local browser state and does not provide durable recipient access, owner history, revocation, or audit persistence.
+- [ ] Verify the database-free Vercel demo creates, decrypts locally, and presents its browser-local consumption lifecycle honestly after the copy correction is live.
+- [x] Update the README with the database-free Vercel contest-demo mode, demo walkthrough, and explicit limitation table.
+- [ ] Clarify the Vercel demo’s consumed-state screen so it explicitly describes browser-local, not global, destruction.
+- [ ] Redeploy and re-test the corrected Vercel browser-demo consumed-state copy after one local reveal.
